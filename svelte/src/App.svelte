@@ -1,6 +1,13 @@
 <script lang="ts">
   import svelteLogo from './assets/svelte.svg'
-  import Counter from './lib/Counter.svelte'
+  import type { Book } from '../../server/types'
+  // import ShowBooks from './lib/ShowBooks.svelte'
+  let books:Book[]
+  fetch('/api/getBooks')
+    .then(response => response.json())
+    .then(data => {
+      books = data;
+    });
 </script>
 
 <main>
@@ -12,7 +19,7 @@
   <h1>LibraSys</h1>
 
   <div class="card">
-    <Counter />
+    <pre><code>{JSON.stringify(books, null, 2)}</code></pre>
   </div>
 
   <p>

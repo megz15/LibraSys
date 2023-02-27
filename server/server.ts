@@ -68,8 +68,9 @@ function searchBooks(searchedBook:string, limit=30):Book[] {
 
 app.use(express.static(path.join(__dirname, '../svelte/public')));
 
-app.get('/', (_req, _res) => {
-    _res.sendFile(path.join(__dirname, '../svelte/public', 'index.html'));
+app.get('/', (req, res) => {
+    // let books = showBooks()
+    res.sendFile(path.join(__dirname, '../svelte/public', 'index.html'));
 });
 
 app.get('/api/initBooks', (req, res) => {
@@ -77,6 +78,11 @@ app.get('/api/initBooks', (req, res) => {
     if (!bookCount) initBooks()
     res.send(`Initialized books: ${JSON.stringify(bookCount)}`);
 });
+
+app.get('/api/getBooks', (req, res) => {
+    const books = showBooks()
+    res.json(books)
+})
 
 app.listen(port, () => {
     console.log(`⚡[server]: running on http://localhost:${port}/`);
