@@ -1,7 +1,9 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import Database from 'better-sqlite3'
 import path from 'path'
 import type { User, Book } from './types';
+import passport from 'passport'
+import './auth'
 
 const app: express.Application = express();
 const port: number = 3000;
@@ -36,9 +38,37 @@ function createUser(email:string, fName:string, uName:string, pwd:string) {
 
 app.use(express.static(path.join(__dirname, '../svelte/public')));
 
+// Define a middleware function
+const logRequests = (req:Request, res:Response, next:NextFunction) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next(); // Pass control to the next middleware function or route handler
+};
+
+// Add the middleware function to the application
+app.use(logRequests);
+
 app.get('/', (req, res) => {
-    // let books = showBooks()
     res.sendFile(path.join(__dirname, '../svelte/public', 'index.html'));
+});
+
+app.get('/auth/google', 
+    passport.authenticate('google', {scope: ['email', 'profile']})
+)
+
+app.get('/auth/google/callback',
+    passport.authenticate('google', {successRedirect: '/profile', failureRedirect: '/auth/failure'})
+)
+
+app.get('/auth/failure', (req, res)=>{
+    res.send('Something went wrong!')
+})
+
+function isLoggedIn(req:Request, res:Response, next:NextFunction) {
+    req.user ? next() : res.sendStatus(401)
+}
+
+app.get('/profile', isLoggedIn, (req, res) => {
+    res.send("Hello!");
 });
 
 app.get('/api/initBooks', (req, res) => {
@@ -67,16 +97,20 @@ app.get('/api/initBooks', (req, res) => {
 
 app.get('/api/getBooks', (req, res) => {
     const stmt = db.prepare(`select * from books`)
-    const rows = stmt.all()
-    res.json(rows)
+    const books:Book[] = stmt.all()
+    res.json(books)
 })
 
 app.get('/api/searchBooks', (req,res)=>{
     let searchedBook = req.query.book
     let limit = req.query.limit
     const stmt = db.prepare(`select * from books where lower(books.bName) like lower('%'|| $searchedBook ||'%') limit $limit`)
-    const rows = stmt.all({searchedBook, limit})
-    res.send(rows)
+    const books:Book[] = stmt.all({searchedBook, limit})
+    res.send(books)
+})
+
+app.get('/signin', (req,res)=>{
+
 })
 
 app.listen(port, () => {
