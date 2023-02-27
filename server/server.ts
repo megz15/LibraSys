@@ -16,7 +16,6 @@ db.exec(`create table if not exists users (
     email text unique,
     fName text default null,
     uName text unique,
-    pwd text default null,
     booksBorrowed text default null,
     isAdmin integer default 0
 );`)
@@ -30,10 +29,15 @@ db.exec(`create table if not exists books (
     borrowCount integer default 0
 );`)
 
-function createUser(email:string, fName:string, uName:string, pwd:string) {
+export function createUser(email:string, fName:string, uName:string) {
     // Planning to use Mersenne Twister generator later for the UID instead of SQL autoincrement
     // to minimize the chances of malicious attacks based on sequential IDs
-    db.exec(`insert into users values(${Date.now()}, '${email}', '${fName}', '${uName}', '${pwd}', 0, 0);`)
+    db.prepare(`insert into users values(?, ?, ?, ?, 0, 0);`).run(Date.now(), email, fName, uName)
+    // db.exec(`insert into users values(${Date.now()}, '${email}', '${fName}', '${uName}', 0, 0);`)
+}
+
+export function getUser(by:string, val:string):User[] {
+    return db.prepare(`select * from users where ${by} = ?;`).get(val)
 }
 
 app.use(express.static(path.join(__dirname, '../svelte/public')));
