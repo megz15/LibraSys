@@ -16,15 +16,15 @@ const googleOptions:StrategyOptions = {
 // Configure Google OAuth2 strategy
 passport.use(new Strategy(googleOptions,
     function(accessToken, refreshToken, profile:any, done) {
-        const user = getUser('email', profile.emails[0].value)
+        let user = getUser('email', profile.emails[0].value)
 
         if (!user) { // If user doesn't exist, create new user in database
             createUser(profile.id, profile.emails[0].value, profile.name.givenName, profile.displayName)
-            // const newUser = getUser('email', profile.emails[0].value)
+            user = getUser('email', profile.emails[0].value)
         }
         
         // Return a JWT with the user profile
-        const token = jwt.sign(profile._json, process.env.JWT_SECRET!, {expiresIn: '10m'})
+        const token = jwt.sign({user:user}, process.env.JWT_SECRET!, {expiresIn: '10m'})
         return done(null, token)
     }
 ))

@@ -1,9 +1,14 @@
-export type User = {
+export type AuthUser = {
+    user: UserType,
+    iat: number,
+    exp: number
+}
+
+export type UserType = {
     uID: number,
     email: string,
     fName: string,
     uName: string,
-    pwd: string,
     booksBorrowed: string,
     isAdmin: number,
 }

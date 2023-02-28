@@ -1,6 +1,6 @@
 // Dependencies
 import express, { Request, Response, NextFunction } from 'express'
-import type { User, Book } from './types'
+import type { UserType, AuthUser, Book } from './types'
 import cookieParser from 'cookie-parser'
 import Database from 'better-sqlite3'
 import * as jwt from "jsonwebtoken"
@@ -40,7 +40,7 @@ export function createUser(gID:string, email:string, fName:string, uName:string,
     db.prepare(`insert into users values(?, ?, ?, ?, 0, ?);`).run(gID, email, fName, uName, isAdmin)
 }
 
-export function getUser(by:string, val:string):User[] {
+export function getUser(by:string, val:string):UserType[] {
     return db.prepare(`select * from users where ${by} = ?;`).get(val)
 }
 
@@ -81,14 +81,21 @@ const verifyJWTi = (req:Request, res:Response, next:NextFunction) => {
     if (token) {
         jwt.verify(token, process.env.JWT_SECRET!, (err:any, user:any)=>{
             if (err) return res.sendStatus(403)
-            req.user = user
+            req.data = user.user
             next()
         })
     } else res.sendStatus(401)
 }
 
 app.get('/profile', verifyJWTi, (req, res) => {
-    res.send(`Hello, ${JSON.stringify(req.user)}!`)
+    res.send(`Hello, ${JSON.stringify(req.data)}!`)
+})
+
+app.get('/admin', verifyJWTi, (req, res)=>{
+    const profile = req.data
+    if (!profile.isAdmin) res.sendStatus(403)
+    else res.send(`Welcome, admin ${JSON.stringify(profile)}!`)
+    // res.send(profile)
 })
 
 app.get('/api/initBooks', (req, res) => {
