@@ -1,18 +1,25 @@
 import express, { Request, Response, NextFunction } from 'express';
+// import session from 'express-session';
 import Database from 'better-sqlite3'
 import path from 'path'
 import type { User, Book } from './types';
 import passport from 'passport'
 import './auth'
+import cookieParser from 'cookie-parser';
+import * as jwt from "jsonwebtoken";
 
 const app: express.Application = express();
 const port: number = 3000;
+
+app.use(express.json());
+app.use(cookieParser());
+app.use(passport.initialize());
 
 const db = new Database('./server/data.db', {verbose: console.log})
 db.pragma('journal_mode = WAL')
 
 db.exec(`create table if not exists users (
-    uID integer primary key unique,
+    uID text primary key unique,
     email text unique,
     fName text default null,
     uName text unique,
@@ -29,10 +36,11 @@ db.exec(`create table if not exists books (
     borrowCount integer default 0
 );`)
 
-export function createUser(email:string, fName:string, uName:string) {
+export function createUser(gID:string, email:string, fName:string, uName:string, isAdmin=0) {
     // Planning to use Mersenne Twister generator later for the UID instead of SQL autoincrement
-    // to minimize the chances of malicious attacks based on sequential IDs
-    db.prepare(`insert into users values(?, ?, ?, ?, 0, 0);`).run(Date.now(), email, fName, uName)
+    // to minimize the chances of malicious attacks based on sequential ID
+    // Edit: Nevermind, using user's google ID
+    db.prepare(`insert into users values(?, ?, ?, ?, 0, ?);`).run(gID, email, fName, uName, isAdmin)
     // db.exec(`insert into users values(${Date.now()}, '${email}', '${fName}', '${uName}', 0, 0);`)
 }
 
@@ -42,13 +50,11 @@ export function getUser(by:string, val:string):User[] {
 
 app.use(express.static(path.join(__dirname, '../svelte/public')));
 
-// Define a middleware function
+// Define a middleware function to log requests
 const logRequests = (req:Request, res:Response, next:NextFunction) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     next(); // Pass control to the next middleware function or route handler
 };
-
-// Add the middleware function to the application
 app.use(logRequests);
 
 app.get('/', (req, res) => {
@@ -56,23 +62,54 @@ app.get('/', (req, res) => {
 });
 
 app.get('/auth/google', 
-    passport.authenticate('google', {scope: ['email', 'profile']})
+    passport.authenticate('google', {scope: ['email', 'profile'], session:false})
 )
 
 app.get('/auth/google/callback',
-    passport.authenticate('google', {successRedirect: '/profile', failureRedirect: '/auth/failure'})
+    passport.authenticate('google', {failureRedirect: '/auth/failure', session:false}),
+    (req, res) => {
+        // const token = jwt.sign({user:req.user}, process.env.JWT_SECRET!);
+        const token = req.user
+        console.log(`\n\n${JSON.stringify(token)}\n\n`)
+        res.cookie('jwt', token)
+        // res.header('Authorization', `JWT ${token}`)
+        res.redirect(`/profile`)
+    }
 )
 
 app.get('/auth/failure', (req, res)=>{
     res.send('Something went wrong!')
 })
 
-function isLoggedIn(req:Request, res:Response, next:NextFunction) {
-    req.user ? next() : res.sendStatus(401)
+// Define middleware to verify JWT token
+const verifyJWTi = (req:Request, res:Response, next:NextFunction) => {
+    // const token = req.query.token as string
+    const token = req.cookies.jwt
+
+    if (token) {
+        jwt.verify(token, process.env.JWT_SECRET!, (err:any, user:any)=>{
+            if (err) {
+                console.log(`\n\n${err}\n\n`)
+                return res.sendStatus(403)
+            }
+            req.user = user
+            next()
+        })
+    } else res.sendStatus(401)
 }
 
-app.get('/profile', isLoggedIn, (req, res) => {
-    res.send("Hello!");
+function isLoggedIn(req:Request, res:Response, next:NextFunction) {
+    // req.user ? next() : res.sendStatus(401)
+    // console.log(`\n\n${JSON.stringify(req.headers)}\n\n`)
+    // console.log(`\n\n${JSON.stringify(req.cookies)}\n\n`)
+    passport.authenticate("jwt", { session: false }) ? next() : res.sendStatus(401)
+}
+
+app.get('/profile', verifyJWTi, (req, res) => {
+    // const authHeader = req.headers.authorization
+    // console.log(console.log(`dbgg ${authHeader}`))
+    // res.header('Authorization', `JWT ${req.user}`)
+    res.send(`Hello, ${JSON.stringify(req.user)}!`);
 });
 
 app.get('/api/initBooks', (req, res) => {
@@ -111,10 +148,6 @@ app.get('/api/searchBooks', (req,res)=>{
     const stmt = db.prepare(`select * from books where lower(books.bName) like lower('%'|| $searchedBook ||'%') limit $limit`)
     const books:Book[] = stmt.all({searchedBook, limit})
     res.send(books)
-})
-
-app.get('/signin', (req,res)=>{
-
 })
 
 app.listen(port, () => {
