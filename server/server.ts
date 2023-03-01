@@ -1,6 +1,6 @@
 // Dependencies
 import express, { Request, Response, NextFunction } from 'express'
-import type { UserType, AuthUser, Book } from './types'
+import type { UserType, Book } from './types'
 import cookieParser from 'cookie-parser'
 import Database from 'better-sqlite3'
 import * as jwt from "jsonwebtoken"
@@ -12,7 +12,7 @@ const app:express.Application = express()
 const port:number = 3000
 
 app.use(cookieParser())
-app.use(express.static(path.join(__dirname, '../svelte/public')))
+app.use(express.static(path.join(__dirname, '..', 'svelte', 'public')))
 
 // Db initialization
 const db = new Database('./server/data.db', {verbose: console.log})
@@ -54,7 +54,7 @@ app.use(logRequests)
 // Routes
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../svelte/public', 'index.html'))
+    res.sendFile(path.join(__dirname, '..', 'svelte', 'public', 'index.html'))
 })
 
 app.get('/auth/google', 
@@ -92,10 +92,16 @@ app.get('/profile', verifyJWTi, (req, res) => {
 })
 
 app.get('/admin', verifyJWTi, (req, res)=>{
-    const profile = req.data
+    const profile:UserType = req.data
     if (!profile.isAdmin) res.sendStatus(403)
     else res.send(`Welcome, admin ${JSON.stringify(profile)}!`)
     // res.send(profile)
+})
+
+app.get('/admin/users', verifyJWTi, (req, res) => {
+    const stmt = db.prepare(`select * from users`)
+    const users:UserType[] = stmt.all()
+    res.json(users)
 })
 
 app.get('/api/initBooks', (req, res) => {
@@ -135,6 +141,18 @@ app.get('/api/searchBooks', (req,res)=>{
     const books:Book[] = stmt.all({searchedBook, limit})
     res.send(books)
 })
+
+const aboutRouter = require('./routes/about');
+app.use('/about', aboutRouter);
+
+// app.get('/about', (req, res) => {
+//     // const { html } = app.render({ url: req.url })
+//     res.send(`
+//     <!DOCTYPE html>
+//     <div id="app"><${8201312}></div>
+//     <script src="/dist/bundle.js"></script>
+//   `);
+// });
 
 app.listen(port, () => {
     console.log(`⚡[server]: running on http://localhost:${port}/`)

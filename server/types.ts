@@ -1,8 +1,8 @@
-export type AuthUser = {
-    user: UserType,
-    iat: number,
-    exp: number
-}
+// export type AuthUser = {
+//     user: UserType,
+//     iat: number,
+//     exp: number
+// }
 
 export type UserType = {
     uID: number,
