@@ -12,7 +12,7 @@ const app:express.Application = express()
 const port:number = 3000
 
 app.use(cookieParser())
-app.use(express.static(path.join(__dirname, '..', 'svelte', 'public')))
+// app.use(express.static(path.join(__dirname, '..', 'svelte', 'public')))
 
 // Db initialization
 const db = new Database('./server/data.db', {verbose: console.log})
@@ -54,7 +54,8 @@ app.use(logRequests)
 // Routes
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'svelte', 'public', 'index.html'))
+    // res.sendFile(path.join(__dirname, '..', 'svelte', 'public', 'index.html'))
+    res.send('test')
 })
 
 app.get('/auth/google', 
@@ -141,18 +142,6 @@ app.get('/api/searchBooks', (req,res)=>{
     const books:Book[] = stmt.all({searchedBook, limit})
     res.send(books)
 })
-
-const aboutRouter = require('./routes/about');
-app.use('/about', aboutRouter);
-
-// app.get('/about', (req, res) => {
-//     // const { html } = app.render({ url: req.url })
-//     res.send(`
-//     <!DOCTYPE html>
-//     <div id="app"><${8201312}></div>
-//     <script src="/dist/bundle.js"></script>
-//   `);
-// });
 
 app.listen(port, () => {
     console.log(`⚡[server]: running on http://localhost:${port}/`)
