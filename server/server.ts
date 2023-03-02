@@ -1,9 +1,7 @@
 // Dependencies
 import express, { Request, Response, NextFunction } from 'express'
-// import { handler } from '../sveltekit/build/handler.js'
 import type { UserType, Book } from './types'
 import cookieParser from 'cookie-parser'
-import bodyParser from 'body-parser'
 import Database from 'better-sqlite3'
 import * as jwt from "jsonwebtoken"
 import passport from 'passport'
@@ -56,24 +54,29 @@ app.use(logRequests)
 
 // Routes
 
-// app.use('/', express.static(path.join(__dirname, '..', 'svelte', 'public')))
-
 app.get('/search', (req, res) => {
     let searchedBook = req.query.book || ''
     let limit = req.query.limit || 50
+
     const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
+    
     const stmt = db.prepare(`select * from books where lower(books.bName) like lower('%'|| $searchedBook ||'%') limit $limit`)
     const books:Book[] = stmt.all({searchedBook, limit})
-    // const stmt = db.prepare(`select * from books`)
-    // const books:Book[] = stmt.all()
+    
+    // Rendering the component with the given props here doesn't work, data shows up as null
+
     const data = require('../svelte/src/App.svelte').default.render({ books: books })
+
+    // So I'm sending it as window.__INITIAL_DATA__
+    // which will then be read client-side to "hydrate" the svelte component
+
     res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
-    ${data.html}
+    ${data.html} 
     <script>
         window.__INITIAL_DATA__ = ${JSON.stringify(books)};
     </script>
     </div>`))
-    // res.send(indexFile.toString().replace(`{books: 'books'}`, `{books: ${books}}`))
+
 })
 
 app.get('/about', (req, res) => {

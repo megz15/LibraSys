@@ -1,6 +1,6 @@
 <script>
-    export let books
+    export let data
     import Index from "./pages/Index.svelte";
 </script>
 
-<Index books = {books}/>
+<Index books = {data}/>
