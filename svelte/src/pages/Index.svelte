@@ -1,7 +1,6 @@
 <script>
     export let books
-    let searchedBook = 'Search'
-    let fn = () => console.log('click')
+    // let searchedBook = 'Search'
 </script>
 
 <main>
@@ -12,10 +11,9 @@
     <input
         type="search"
         placeholder="Search..."
-        value="{searchedBook}"
     />
 
-    <button on:click={fn}>Search</button>
+    <button on:click={()=>window.open("https://www.w3schools.com")}>Search</button>
 
     <div class="card">
         <pre><code>{JSON.stringify(books, null, 2)}</code></pre>

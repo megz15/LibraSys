@@ -19,6 +19,7 @@ export default defineConfig({
     }
   },
   plugins: [svelte({compilerOptions: {
+    // generate: 'ssr',
     hydratable: true
   }})],
 })

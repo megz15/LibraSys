@@ -56,27 +56,31 @@ app.use(logRequests)
 
 // Routes
 
-app.use('/static', express.static(path.join(__dirname, '..', 'svelte-skel', 'public')))
-const stmt = db.prepare(`select * from books`)
-const books:Book[] = stmt.all()
-const App = require('../svelte-skel/src/App.svelte').default
-const data = App.render({
-    // books: books,
-    world: 'test'
-})
+// app.use('/', express.static(path.join(__dirname, '..', 'svelte', 'public')))
 
-app.get('/home', (req, res) => {
-    console.log(data.html)
-    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte-skel', 'public', 'index.html'))
-    res.send(indexFile.toString().replace('<body></body>', `<body>${data.html}</body>`))
-    // res.send(data.html)
+app.get('/search', (req, res) => {
+    let searchedBook = req.query.book || ''
+    let limit = req.query.limit || 50
+    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
+    const stmt = db.prepare(`select * from books where lower(books.bName) like lower('%'|| $searchedBook ||'%') limit $limit`)
+    const books:Book[] = stmt.all({searchedBook, limit})
+    // const stmt = db.prepare(`select * from books`)
+    // const books:Book[] = stmt.all()
+    const data = require('../svelte/src/App.svelte').default.render({ books: books })
+    res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
+    ${data.html}
+    <script>
+        window.__INITIAL_DATA__ = ${JSON.stringify(books)};
+    </script>
+    </div>`))
+    // res.send(indexFile.toString().replace(`{books: 'books'}`, `{books: ${books}}`))
 })
 
 app.get('/about', (req, res) => {
-    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte-skel', 'public', 'index.html'))
-    const App = require('../svelte-skel/src/pages/About.svelte').default
+    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
+    const App = require('../svelte/src/pages/About.svelte').default
     const { html, css, head } = App.render()
-    res.send(indexFile.toString().replace('<body></body>', `<body>>${html}</body>`))
+    res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">${html}</div>`))
     // res.json(html)
 })
 
@@ -166,7 +170,7 @@ app.get('/api/searchBooks', (req,res)=>{
 })
 
 // app.use(handler)
-// app.use(express.static(path.join(__dirname, '..', 'svelte-skel', 'public')))
+app.use(express.static(path.join(__dirname, '..', 'svelte', 'public')))
 
 app.listen(port, () => {
     console.log(`⚡[server]: running on http://localhost:${port}/`)
