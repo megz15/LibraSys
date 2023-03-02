@@ -1,5 +1,6 @@
 <script>
-    export let books
+    export let data
+    const books = data
     let searchedBook = ''
 </script>
 

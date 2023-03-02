@@ -65,7 +65,9 @@ app.get('/search', (req, res) => {
     
     // Rendering the component with the given props here doesn't work, data shows up as null
 
-    const data = require('../svelte/src/App.svelte').default.render({ books: books })
+    const data = require('../svelte/src/pages/Index.svelte').default.render({
+        data: books
+    })
 
     // So I'm sending it as window.__INITIAL_DATA__
     // which will then be read client-side to "hydrate" the svelte component
@@ -73,7 +75,8 @@ app.get('/search', (req, res) => {
     res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
     ${data.html} 
     <script>
-        window.__INITIAL_DATA__ = ${JSON.stringify(books)};
+        window.__COMP__ = "Index";
+        window.__DATA__ = ${JSON.stringify(books)};
     </script>
     </div>`))
 
@@ -81,10 +84,13 @@ app.get('/search', (req, res) => {
 
 app.get('/about', (req, res) => {
     const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
-    const App = require('../svelte/src/pages/About.svelte').default
-    const { html, css, head } = App.render()
-    res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">${html}</div>`))
-    // res.json(html)
+    const data = require('../svelte/src/pages/About.svelte').default.render()
+    res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
+    ${data.html} 
+    <script>
+        window.__COMP__ = "About";
+    </script>
+    </div>`))
 })
 
 app.get('/auth/google', 
