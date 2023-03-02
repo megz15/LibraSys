@@ -1,1 +1,0 @@
-<h1>Svelte route 123</h1>
