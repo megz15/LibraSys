@@ -3,6 +3,7 @@ import express, { Request, Response, NextFunction } from 'express'
 // import { handler } from '../sveltekit/build/handler.js'
 import type { UserType, Book } from './types'
 import cookieParser from 'cookie-parser'
+import bodyParser from 'body-parser'
 import Database from 'better-sqlite3'
 import * as jwt from "jsonwebtoken"
 import passport from 'passport'
@@ -55,12 +56,28 @@ app.use(logRequests)
 
 // Routes
 
-app.get('/', (req, res) => {
-    // res.sendFile(path.join(__dirname, '..', 'svelte', 'public', 'index.html'))
-    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
-    const App = require('../svelte/src/App.svelte').default
-    const data = App.render()
-    res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">${data.html}</div>`))
+app.use('/static', express.static(path.join(__dirname, '..', 'svelte-skel', 'public')))
+const stmt = db.prepare(`select * from books`)
+const books:Book[] = stmt.all()
+const App = require('../svelte-skel/src/App.svelte').default
+const data = App.render({
+    // books: books,
+    world: 'test'
+})
+
+app.get('/home', (req, res) => {
+    console.log(data.html)
+    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte-skel', 'public', 'index.html'))
+    res.send(indexFile.toString().replace('<body></body>', `<body>${data.html}</body>`))
+    // res.send(data.html)
+})
+
+app.get('/about', (req, res) => {
+    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte-skel', 'public', 'index.html'))
+    const App = require('../svelte-skel/src/pages/About.svelte').default
+    const { html, css, head } = App.render()
+    res.send(indexFile.toString().replace('<body></body>', `<body>>${html}</body>`))
+    // res.json(html)
 })
 
 app.get('/auth/google', 
@@ -134,22 +151,22 @@ app.get('/api/initBooks', (req, res) => {
     res.send(`Initialized books: ${JSON.stringify(bookCount)}`)
 })
 
-app.get('/api/getBooks', (req, res) => {
-    const stmt = db.prepare(`select * from books`)
-    const books:Book[] = stmt.all()
-    res.json(books)
-})
+// app.get('/api/getBooks', (req, res) => {
+//     const stmt = db.prepare(`select * from books`)
+//     const books:Book[] = stmt.all()
+//     res.json(books)
+// })
 
 app.get('/api/searchBooks', (req,res)=>{
     let searchedBook = req.query.book
-    let limit = req.query.limit
+    let limit = req.query.limit || 50
     const stmt = db.prepare(`select * from books where lower(books.bName) like lower('%'|| $searchedBook ||'%') limit $limit`)
     const books:Book[] = stmt.all({searchedBook, limit})
     res.send(books)
 })
 
 // app.use(handler)
-app.use(express.static(path.join(__dirname, '..', 'svelte', 'public')))
+// app.use(express.static(path.join(__dirname, '..', 'svelte-skel', 'public')))
 
 app.listen(port, () => {
     console.log(`⚡[server]: running on http://localhost:${port}/`)

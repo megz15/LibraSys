@@ -1,14 +1,9 @@
-<main>
-    <h1>LibraSys</h1>
+<script>
+    export let books
+    import Index from "./pages/Index.svelte";
+    import About from "./pages/About.svelte";
+</script>
 
-    <a href="/auth/google">Sign In</a>
-
-    <input
-        type="search"
-        placeholder="Search..."
-    />
-
-    <div class="card">
-        <pre><code>{JSON.stringify({}, null, 2)}</code></pre>
-    </div>
-</main>
+{books}
+<Index books = {books}/>
+<About />

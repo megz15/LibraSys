@@ -18,5 +18,7 @@ export default defineConfig({
       overlay: true
     }
   },
-  plugins: [svelte()],
+  plugins: [svelte({compilerOptions: {
+    hydratable: true
+  }})],
 })
