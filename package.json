@@ -5,7 +5,7 @@
   "main": "server/server.ts",
   "scripts": {
     "start": "nodemon server/server.ts",
-    "dev": "nodemon server/server.ts"
+    "dev": "nodemon --esm server/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +24,7 @@
     "passport-jwt": "^4.0.1"
   },
   "devDependencies": {
+    "@sveltejs/adapter-static": "^2.0.1",
     "@types/better-sqlite3": "^7.6.3",
     "@types/cookie-parser": "^1.4.3",
     "@types/express-session": "^1.17.6",

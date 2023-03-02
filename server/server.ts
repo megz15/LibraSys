@@ -1,18 +1,20 @@
 // Dependencies
 import express, { Request, Response, NextFunction } from 'express'
+// import { handler } from '../sveltekit/build/handler.js'
 import type { UserType, Book } from './types'
 import cookieParser from 'cookie-parser'
 import Database from 'better-sqlite3'
 import * as jwt from "jsonwebtoken"
 import passport from 'passport'
+require('svelte/register')
 import path from 'path'
-import './auth'
+import fs from 'fs'
+import './auth.ts'
 
 const app:express.Application = express()
 const port:number = 3000
 
 app.use(cookieParser())
-// app.use(express.static(path.join(__dirname, '..', 'svelte', 'public')))
 
 // Db initialization
 const db = new Database('./server/data.db', {verbose: console.log})
@@ -55,7 +57,10 @@ app.use(logRequests)
 
 app.get('/', (req, res) => {
     // res.sendFile(path.join(__dirname, '..', 'svelte', 'public', 'index.html'))
-    res.send('test')
+    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
+    const App = require('../svelte/src/App.svelte').default
+    const data = App.render()
+    res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">${data.html}</div>`))
 })
 
 app.get('/auth/google', 
@@ -142,6 +147,9 @@ app.get('/api/searchBooks', (req,res)=>{
     const books:Book[] = stmt.all({searchedBook, limit})
     res.send(books)
 })
+
+// app.use(handler)
+app.use(express.static(path.join(__dirname, '..', 'svelte', 'public')))
 
 app.listen(port, () => {
     console.log(`⚡[server]: running on http://localhost:${port}/`)
