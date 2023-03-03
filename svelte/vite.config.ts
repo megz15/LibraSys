@@ -3,16 +3,16 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  optimizeDeps: {
-    include: []
-  },
   build: {
     outDir: 'public',
     rollupOptions: {
       output: {
         entryFileNames: `[name].js`,
         chunkFileNames: `[name].js`,
-        assetFileNames: `[name].[ext]`
+        assetFileNames: `[name].[ext]`,
+        manualChunks: {
+          '@smui/common': ['@smui/common', '@smui/data-table', '@smui/icon-button'],
+        },
       }
     }
   },
