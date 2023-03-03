@@ -65,7 +65,7 @@ app.get('/search', (req, res) => {
     
     // Rendering the component with the given props here doesn't work, data shows up as null
 
-    const data = require('../svelte/src/pages/Index.svelte').default.render({
+    const data = require('../svelte/src/pages/Search.svelte').default.render({
         data: books
     })
 
@@ -76,7 +76,7 @@ app.get('/search', (req, res) => {
     res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
     ${data.html} 
     <script>
-        window.__COMP__ = "Index";
+        window.__COMP__ = "Search";
         window.__DATA__ = ${JSON.stringify(books)};
     </script>
     </div>`))

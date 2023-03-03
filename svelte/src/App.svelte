@@ -3,13 +3,13 @@
     export let data
     
     const routes = {
-        'Index': Index,
+        'Search': Search,
         'About': About,
         'Profile': Profile,
         'Admin': Admin,
     }
     
-    import Index from "./pages/Index.svelte";
+    import Search from "./pages/Search.svelte";
     import About from "./pages/About.svelte";
     import Profile from "./pages/Profile.svelte";
     import Admin from "./pages/Admin.svelte";
