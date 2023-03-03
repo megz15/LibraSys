@@ -1,4 +1,5 @@
 <script>
+
     export let data
 
     import { onMount } from 'svelte';
@@ -60,10 +61,30 @@
     $: if (currentPage > lastPage) {
         currentPage = lastPage;
     }
+
+    import BookModal from './BookModal.svelte';
+    let isBookModalOpen = false
+    let modal
+
+    function openModal(d) {
+        isBookModalOpen = true
+        modal = new BookModal({
+            target: document.body,
+            props: {
+                book: d
+            },
+        })
+    }
+
 </script>
 
 <main>
-    {#if DataTable}{#if IconButton}{#if Select}
+
+    <!-- {#if isBookModalOpen}
+        <BookModal onClose={()=>isBookModalOpen = false}/>
+    {/if} -->
+
+    {#if DataTable}
     <DataTable stickyHeader style="width: 100%;">
         <Head>
             <Row>
@@ -74,11 +95,17 @@
         </Head>
         <Body>
             {#each slice as d}
-                <Row>
+                <svelte:component this={Row} on:click={
+                    ()=>{
+                        //location.href=`/search/${(JSON.stringify(d.bID).slice(1, -1))}`
+                        openModal(d)
+                        // isBookModalOpen = true
+                    }
+                }>
                     {#each Object.keys(d) as p}
                         <Cell>{JSON.stringify(d[p])}</Cell>
                     {/each}
-                </Row>
+                </svelte:component>
             {/each}
         </Body>
 
@@ -87,45 +114,49 @@
         <Pagination slot="paginate">
             <svelte:fragment slot="rowsPerPage">
                 <Label>Rows Per Page</Label>
-                <Select variant="outlined" bind:value={rowsPerPage} noLabel>
-                    <Option value={5}>5</Option>
-                    <Option value={10}>10</Option>
-                    <Option value={15}>15</Option>
-                </Select>
+                {#if Select}
+                    <Select variant="outlined" bind:value={rowsPerPage} noLabel>
+                        <Option value={5}>5</Option>
+                        <Option value={10}>10</Option>
+                        <Option value={15}>15</Option>
+                    </Select>
+                {/if}
             </svelte:fragment>
             <svelte:fragment slot="total">
                 {start + 1}-{end} of {data.length}
             </svelte:fragment>
         
-            <IconButton
-                class="material-icons"
-                action="first-page"
-                title="First page"
-                on:click={() => (currentPage = 0)}
-                disabled={currentPage === 0}> first_page
-            </IconButton>
-            <IconButton
-                class="material-icons"
-                action="prev-page"
-                title="Prev page"
-                on:click={() => currentPage--}
-                disabled={currentPage === 0}> chevron_left
-            </IconButton>
-            <IconButton
-                class="material-icons"
-                action="next-page"
-                title="Next page"
-                on:click={() => currentPage++}
-                disabled={currentPage === lastPage}> chevron_right
-            </IconButton>
-            <IconButton
-                class="material-icons"
-                action="last-page"
-                title="Last page"
-                on:click={() => (currentPage = lastPage)}
-                disabled={currentPage === lastPage}> last_page
-            </IconButton>
+            {#if IconButton}
+                <IconButton
+                    class="material-icons"
+                    action="first-page"
+                    title="First page"
+                    on:click={() => (currentPage = 0)}
+                    disabled={currentPage === 0}> first_page
+                </IconButton>
+                <IconButton
+                    class="material-icons"
+                    action="prev-page"
+                    title="Prev page"
+                    on:click={() => currentPage--}
+                    disabled={currentPage === 0}> chevron_left
+                </IconButton>
+                <IconButton
+                    class="material-icons"
+                    action="next-page"
+                    title="Next page"
+                    on:click={() => currentPage++}
+                    disabled={currentPage === lastPage}> chevron_right
+                </IconButton>
+                <IconButton
+                    class="material-icons"
+                    action="last-page"
+                    title="Last page"
+                    on:click={() => (currentPage = lastPage)}
+                    disabled={currentPage === lastPage}> last_page
+                </IconButton>
+            {/if}
         </Pagination>
     </DataTable>
-    {/if}{/if}{/if}
+    {/if}
 </main>

@@ -11,6 +11,7 @@ export type UserType = {
     uName: string,
     booksBorrowed: string,
     isAdmin: number,
+    isPenalized: number,
 }
 
 export type Book = {

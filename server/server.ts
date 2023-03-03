@@ -25,7 +25,8 @@ db.exec(`create table if not exists users (
     fName text default null,
     uName text unique,
     booksBorrowed text default null,
-    isAdmin integer default 0
+    isAdmin integer default 0,
+    isPenalized integer default 0
 );`)
 
 db.exec(`create table if not exists books (
@@ -38,7 +39,7 @@ db.exec(`create table if not exists books (
 );`)
 
 export function createUser(gID:string, email:string, fName:string, uName:string, isAdmin=0) {
-    db.prepare(`insert into users values(?, ?, ?, ?, 0, ?);`).run(gID, email, fName, uName, isAdmin)
+    db.prepare(`insert into users values(?, ?, ?, ?, 0, ?, 0);`).run(gID, email, fName, uName, isAdmin)
 }
 
 export function getUser(by:string, val:string):UserType[] {
@@ -53,6 +54,10 @@ const logRequests = (req:Request, res:Response, next:NextFunction) => {
 app.use(logRequests)
 
 // Routes
+
+app.get('/', (req, res) => {
+    res.send('Index page')
+})
 
 app.get('/search', (req, res) => {
     let searchedBook = req.query.book || ''
@@ -83,6 +88,11 @@ app.get('/search', (req, res) => {
 
 })
 
+app.get('/search/:bookID', (req, res)=>{
+    const book:Book = db.prepare(`select * from books where bID like '%'|| ? ||'%';`).get(req.params.bookID)
+    res.send(book)
+})
+
 app.get('/about', (req, res) => {
     const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
     const data = require('../svelte/src/pages/About.svelte').default.render()
@@ -94,7 +104,7 @@ app.get('/about', (req, res) => {
     </div>`))
 })
 
-app.get('/auth/google', 
+app.get('/login', 
     passport.authenticate('google', {scope: ['email', 'profile'], session:false})
 )
 
@@ -106,6 +116,11 @@ app.get('/auth/google/callback',
         res.redirect(`/profile`)
     }
 )
+
+app.get('/logout', (req, res)=>{
+    res.clearCookie('jwt')
+    res.redirect('/')
+})
 
 app.get('/auth/failure', (req, res)=>{
     res.send('Something went wrong!')
