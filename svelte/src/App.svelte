@@ -4,11 +4,15 @@
     
     const routes = {
         'Index': Index,
-        'About': About
+        'About': About,
+        'Profile': Profile,
+        'Admin': Admin,
     }
     
     import Index from "./pages/Index.svelte";
     import About from "./pages/About.svelte";
+    import Profile from "./pages/Profile.svelte";
+    import Admin from "./pages/Admin.svelte";
 </script>
 
 <!-- Uisng conditional rendering according to the route -->

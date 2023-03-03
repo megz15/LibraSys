@@ -69,7 +69,8 @@ app.get('/search', (req, res) => {
         data: books
     })
 
-    // So I'm sending it as window.__INITIAL_DATA__
+    // So I'm sending it as window.__COMP__ for which component to render according to the route
+    // and window.__DATA__ for the props
     // which will then be read client-side to "hydrate" the svelte component
 
     res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
@@ -110,6 +111,14 @@ app.get('/auth/failure', (req, res)=>{
     res.send('Something went wrong!')
 })
 
+declare global {
+    namespace Express {
+        interface Request {
+            data: User
+        }
+    }
+}
+
 // Define middleware to verify JWT token
 const verifyJWTi = (req:Request, res:Response, next:NextFunction) => {
     const token = req.cookies.jwt
@@ -124,38 +133,50 @@ const verifyJWTi = (req:Request, res:Response, next:NextFunction) => {
 }
 
 app.get('/profile', verifyJWTi, (req, res) => {
-    res.send(`Hello, ${JSON.stringify(req.data)}!`)
+    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
+    
+    const data = require('../svelte/src/pages/Profile.svelte').default.render({
+        data: req.data
+    })
+
+    res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
+    ${data.html} 
+    <script>
+        window.__COMP__ = "Profile";
+        window.__DATA__ = ${JSON.stringify(req.data)};
+    </script>
+    </div>`))
 })
 
-app.get('/admin', verifyJWTi, (req, res)=>{
-    const profile:UserType = req.data
-    if (!profile.isAdmin) res.sendStatus(403)
-    else res.send(`Welcome, admin ${JSON.stringify(profile)}!`)
-    // res.send(profile)
-})
+// app.get('/admin', verifyJWTi, (req, res)=>{
+//     const profile:UserType = req.data
+//     if (!profile.isAdmin) res.sendStatus(403)
+//     else res.send(`Welcome, admin ${JSON.stringify(profile)}!`)
+//     // res.send(profile)
+// })
 
-app.get('/admin/users', verifyJWTi, (req, res) => {
-    const stmt = db.prepare(`select * from users`)
-    const users:UserType[] = stmt.all()
-    res.json(users)
+app.get('/admin', verifyJWTi, (req, res) => {
+    // const stmt = db.prepare(`select * from users`)
+    // const users:UserType[] = stmt.all()
+    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
+    
+    const data = require('../svelte/src/pages/Admin.svelte').default.render({
+        data: req.data
+    })
+
+    res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
+    ${data.html} 
+    <script>
+        window.__COMP__ = "Admin";
+        window.__DATA__ = ${JSON.stringify(req.data)};
+    </script>
+    </div>`))
 })
 
 app.get('/api/initBooks', (req, res) => {
     var bookCount = db.prepare('select count(*) from books').get()['count(*)']
     if (!bookCount) {
-        const books = [
-            ['001-BLA.J', 'Lorem Ipsum', 'Math', 'H. Wells', 7, 7],
-            ['002-ZZZ.J', 'Dolor Sit Amet', 'History', 'J. Smith', 3, 1],
-            ['003-ABC.J', 'Consectetur Adipiscing Elit', 'Science', 'E. Brown', 5, 2],
-            ['004-DEF.J', 'Sed Do Eiusmod Tempor Incididunt', 'Fiction', 'S. Johnson', 10, 0],
-            ['005-GHI.J', 'Ut Labore Et Dolore Magna', 'Biography', 'M. Garcia', 2, 2],
-            ['006-JKL.J', 'Aliquam Consequat Ultricies Ligula', 'Philosophy', 'A. Lee', 8, 5],
-            ['007-MNO.J', 'Nulla Facilisi. Aenean Nec Eros', 'Politics', 'R. Clark', 6, 3],
-            ['008-PQR.J', 'Vestibulum Ante Ipsum Primis', 'Arts', 'G. Turner', 4, 2],
-            ['009-STU.J', 'In Faucibus Orci Luctus Et', 'Poetry', 'T. Nguyen', 1, 0],
-            ['010-VWX.J', 'Quisque Ut Ligula Velit', 'Education', 'K. Kim', 9, 8]
-        ]
-    
+        const books:Book[] = require('./dummyBooks.json')
         const stmt = db.prepare(`insert into books values(?,?,?,?,?,?)`)
         for (let i = 0; i < books.length; i++) {
             stmt.run(books[i])

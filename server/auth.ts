@@ -24,7 +24,7 @@ passport.use(new Strategy(googleOptions,
         }
         
         // Return a JWT with the user profile
-        const token = jwt.sign({user:user}, process.env.JWT_SECRET!, {expiresIn: '10m'})
+        const token = jwt.sign({user:user}, process.env.JWT_SECRET!, {expiresIn: '1d'})
         return done(null, token)
     }
 ))
