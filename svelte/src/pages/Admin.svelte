@@ -1,16 +1,5 @@
 <script>
     export let data
-    // import DataTable, { Head, Body, Row, Cell } from '@smui/data-table'
-    // const DataTable = require('@smui/data-table').default
-    // const Head = require('@smui/data-table').Head
-    // const Body = require('@smui/data-table').Body
-    // const Row = require('@smui/data-table').Row
-    // const Cell = require('@smui/data-table').Cell
-    
-    // import Select, { Option } from '@smui/select';
-    // import IconButton from '@smui/icon-button';
-    // import { Label } from '@smui/common';
-
 
     import { onMount } from 'svelte';
 
@@ -19,15 +8,6 @@
     let Body
     let Row
     let Cell
-    // onMount(async () => {
-    //     import('@smui/data-table').then((m)=>{
-    //         DataTable = m.default;
-    //         Head = m.Head
-    //         Body = m.Body
-    //         Row = m.Row
-    //         Cell = m.Cell
-    //     })
-    // }
     
     let Pagination
     let Label
@@ -37,6 +17,18 @@
 
     let IconButton
     
+    // Importing the module in the traditional way wasn't working
+    // Since according to the svelte docs regarding svelte/register:
+    /*
+        The .default is necessary because we're converting from
+        native JavaScript modules to the CommonJS modules recognised
+        by Node. Note that if your component imports JavaScript
+        modules, they will fail to load in Node and you will need to
+        use a bundler instead.
+    */
+    // So, I'm using dynamic imports to load the modules after
+    // the component has been loaded
+
     onMount(async () => {
         let module
         
@@ -74,12 +66,6 @@
     <h1>Admin panel</h1>
     <button>Create new entry</button><br>
 
-    <!-- {#if IconButton}
-        <IconButton class="material-icons" on:click={() => alert()}>
-            build
-        </IconButton>
-    {/if} -->
-
     {#if DataTable}{#if IconButton}{#if Select}
     <DataTable style="width: 100%;">
         <Head>
@@ -98,6 +84,8 @@
                 </Row>
             {/each}
         </Body>
+
+        <!-- Code for table pagination from the SMUI docs -->
 
         <Pagination slot="paginate">
             <svelte:fragment slot="rowsPerPage">

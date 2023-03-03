@@ -155,20 +155,40 @@ app.get('/profile', verifyJWTi, (req, res) => {
 //     // res.send(profile)
 // })
 
-app.get('/admin', verifyJWTi, (req, res) => {
-    // const stmt = db.prepare(`select * from users`)
-    // const users:UserType[] = stmt.all()
+app.get('/admin/users', verifyJWTi, (req, res) => {
+    const stmt = db.prepare(`select * from users`)
+    const users:UserType[] = stmt.all()
+    
     const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
     
     const data = require('../svelte/src/pages/Admin.svelte').default.render({
-        data: req.data
+        data: users
     })
 
     res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
     ${data.html} 
     <script>
         window.__COMP__ = "Admin";
-        window.__DATA__ = ${JSON.stringify(req.data)};
+        window.__DATA__ = ${JSON.stringify(users)};
+    </script>
+    </div>`))
+})
+
+app.get('/admin/books', verifyJWTi, (req, res) => {
+    const stmt = db.prepare(`select * from books`)
+    const books:Book[] = stmt.all()
+    
+    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
+    
+    const data = require('../svelte/src/pages/Admin.svelte').default.render({
+        data: books
+    })
+
+    res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
+    ${data.html}
+    <script>
+        window.__COMP__ = "Admin";
+        window.__DATA__ = ${JSON.stringify(books)};
     </script>
     </div>`))
 })
