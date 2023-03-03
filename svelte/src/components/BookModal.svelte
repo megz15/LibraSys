@@ -38,20 +38,19 @@
 </script>
 
 <main>
-    <!-- <h1>Hello, {data.fName}!</h1><br>
-    {#if data.isAdmin}
-        <h1>You're an admin!</h1><br>
-    {/if}
-    Your details: <pre><code>{JSON.stringify(data, null, 2)}</code></pre> -->
 
     {#if Dialog}
         <svelte:component this={Dialog} bind:open>
             <Title>Book</Title>
-            <Content>{JSON.stringify(book)}</Content>
+            <Content>
+                {#each Object.keys(book) as i}
+                    {i}: {book[i]}<br>
+                {/each}
+            </Content>
             <Actions>
                 {#if Button}
-                    <Button><Label>No</Label></Button>
-                    <Button><Label>Yes</Label></Button>
+                    <Button><Label>Checkout Book</Label></Button>
+                    <Button><Label>Close</Label></Button>
                 {/if}
             </Actions>
         </svelte:component>

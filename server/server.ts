@@ -55,9 +55,9 @@ app.use(logRequests)
 
 // Routes
 
-app.get('/', (req, res) => {
-    res.send('Index page')
-})
+// app.get('/', (req, res) => {
+//     res.send('Index page')
+// })
 
 app.get('/search', (req, res) => {
     let searchedBook = req.query.book || ''

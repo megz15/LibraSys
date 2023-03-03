@@ -13,11 +13,13 @@
     import About from "./pages/About.svelte";
     import Profile from "./pages/Profile.svelte";
     import Admin from "./pages/Admin.svelte";
+    import NavBar from "./components/NavBar.svelte";
 </script>
 
 <!-- Uisng conditional rendering according to the route -->
 <!-- Edit: using svelte:component instead-->
 
+<NavBar />
 <svelte:component this={routes[component]} data={data}/>
 
 <!-- <Index data = {data}/> -->

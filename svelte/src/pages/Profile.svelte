@@ -1,5 +1,8 @@
 <script>
+
     export let data
+
+    // console.log(jwt.verify(console.log(document.cookie.slice(4)), 'a'))
 </script>
 
 <main>
