@@ -14,6 +14,7 @@ const app:express.Application = express()
 const port:number = 3000
 
 app.use(cookieParser())
+app.use(express.json())
 
 // Db initialization
 const db = new Database('./server/data.db', {verbose: console.log})
@@ -24,7 +25,7 @@ db.exec(`create table if not exists users (
     email text unique,
     fName text default null,
     uName text unique,
-    booksBorrowed text default null,
+    booksBorrowed text default '[]',
     isAdmin integer default 0,
     isPenalized integer default 0
 );`)
@@ -39,7 +40,7 @@ db.exec(`create table if not exists books (
 );`)
 
 export function createUser(gID:string, email:string, fName:string, uName:string, isAdmin=0) {
-    db.prepare(`insert into users values(?, ?, ?, ?, 0, ?, 0);`).run(gID, email, fName, uName, isAdmin)
+    db.prepare(`insert into users values(?, ?, ?, ?, '[]', ?, 0);`).run(gID, email, fName, uName, isAdmin)
 }
 
 export function getUser(by:string, val:string):UserType[] {
@@ -129,7 +130,7 @@ app.get('/auth/failure', (req, res)=>{
 declare global {
     namespace Express {
         interface Request {
-            data: User
+            data: UserType
         }
     }
 }
@@ -161,6 +162,35 @@ app.get('/profile', verifyJWTi, (req, res) => {
         window.__DATA__ = ${JSON.stringify(req.data)};
     </script>
     </div>`))
+})
+
+app.post('/api/checkoutBook', verifyJWTi, (req, res)=>{
+    let book:Book = req.body.book
+    let user:UserType = req.data
+
+    if (book.borrowCount < book.copyCount) {
+
+        let booksBorrowed:Book[] = JSON.parse(user.booksBorrowed)
+        if (booksBorrowed.length < 3) {
+            booksBorrowed.push(book)
+
+            let userHavingBorrowedBooks = user
+            userHavingBorrowedBooks.booksBorrowed = JSON.stringify(booksBorrowed)
+
+            res.cookie('jwt',jwt.sign({
+                user: userHavingBorrowedBooks
+            }, process.env.JWT_SECRET!, {expiresIn: '1d'}))
+
+            let stmt = db.prepare(`update users set booksBorrowed = ? where uID = ?;`)
+            stmt.run(JSON.stringify(booksBorrowed), user.uID)
+
+            stmt = db.prepare(`update books set borrowCount = borrowCount + 1 where bID = ?;`)
+            stmt.run(book.bID)
+
+            res.json({message: 'Book checked out'})
+        } else res.json({message: 'Cannot checkout more than 3 books'})
+
+    } else res.json({message: 'No copies available'})
 })
 
 // app.get('/admin', verifyJWTi, (req, res)=>{

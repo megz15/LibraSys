@@ -1,0 +1,1 @@
+function a(e){var o=e.split(".")[1],r=o.replace(/-/g,"+").replace(/_/g,"/"),n=decodeURIComponent(window.atob(r).split("").map(function(t){return"%"+("00"+t.charCodeAt(0).toString(16)).slice(-2)}).join(""));return JSON.parse(n)}function i(e){return a(e.slice(4))}export{i as getUserFromCookie};

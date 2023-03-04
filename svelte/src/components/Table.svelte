@@ -2,6 +2,8 @@
 
     export let data
 
+    if (!data.length) data = [{Error:'No records returned'}]
+
     import { onMount } from 'svelte';
 
     let DataTable

@@ -2,7 +2,6 @@
     import Table from "../components/Table.svelte";
 
     export let data
-    const books = data
 
     let searchedBook = ''
 </script>
@@ -18,5 +17,5 @@
 
     <button on:click={()=>location.href=`/search?book=${searchedBook}`}>Search</button>
 
-    <Table data={books}/>
+    <Table data={data}/>
 </main>

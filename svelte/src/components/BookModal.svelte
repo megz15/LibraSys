@@ -21,10 +21,15 @@
     let Button
     let Label
 
+    let getUserFromCookie
+
     onMount(async () => {
+        
+        getUserFromCookie = (await import('../scripts/ClientJWT')).getUserFromCookie
+
         let module
         
-        module= await import('@smui/dialog');
+        module = await import('@smui/dialog');
         Dialog = module.default
         Title = module.Title
         Content = module.Content
@@ -49,8 +54,22 @@
             </Content>
             <Actions>
                 {#if Button}
-                    <Button><Label>Checkout Book</Label></Button>
-                    <Button><Label>Close</Label></Button>
+                    <svelte:component this={Button} on:click={()=>{
+                        fetch('/api/checkoutBook', {method: 'POST', body:
+                            JSON.stringify({
+                                user: getUserFromCookie(document.cookie),
+                                book: book
+                            }
+                        ), headers: {
+                            'Content-Type': 'application/json'
+                        }}) .then(res => res.json())
+                            .then(res => console.log(res))
+                    }}>
+                        <Label>Checkout Book</Label>
+                    </svelte:component>
+                    <svelte:component this={Button} on:click={()=>open=false}>
+                        <Label>Close</Label>
+                    </svelte:component>
                 {/if}
             </Actions>
         </svelte:component>
