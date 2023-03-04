@@ -13,11 +13,11 @@
     let Button
     let Label
 
-    let getUserFromCookie
+    // let getUserFromCookie
 
     onMount(async () => {
         
-        getUserFromCookie = (await import('../scripts/ClientJWT')).getUserFromCookie
+        // getUserFromCookie = (await import('../scripts/ClientJWT')).getUserFromCookie
 
         let module
         
@@ -50,7 +50,7 @@
                         <svelte:component this={Button} on:click={()=>{
                             fetch('/api/checkoutBook', {method: 'POST', body:
                                 JSON.stringify({
-                                    user: getUserFromCookie(document.cookie),
+                                    // user: getUserFromCookie(document.cookie),
                                     book: book
                                 }
                             ), headers: {

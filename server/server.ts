@@ -113,7 +113,7 @@ app.get('/auth/google/callback',
     passport.authenticate('google', {failureRedirect: '/auth/failure', session:false}),
     (req, res) => {
         const token = req.user
-        res.cookie('jwt', token)
+        res.cookie('jwt', token, {httpOnly: true})
         res.redirect(`/profile`)
     }
 )
@@ -182,7 +182,7 @@ app.post('/api/checkoutBook', verifyJWTi, (req, res)=>{
 
             res.cookie('jwt',jwt.sign({
                 user: userHavingBorrowedBooks
-            }, process.env.JWT_SECRET!, {expiresIn: '1d'}))
+            }, process.env.JWT_SECRET!, {expiresIn: '1d'}), {httpOnly: true})
 
             let stmt = db.prepare(`update users set booksBorrowed = ? where uID = ?;`)
             stmt.run(JSON.stringify(booksBorrowed), user.uID)
