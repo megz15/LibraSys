@@ -5,6 +5,7 @@
     if (!data.length) data = [{Error:'No records returned'}]
 
     import { onMount } from 'svelte';
+    // import { getContext } from 'svelte'
 
     let DataTable
     let Head
@@ -101,6 +102,7 @@
                     ()=>{
                         //location.href=`/search/${(JSON.stringify(d.bID).slice(1, -1))}`
                         openModal(d)
+                        // console.log(getContext('checkedOut'))
                         // isBookModalOpen = true
                     }
                 }>

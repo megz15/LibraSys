@@ -143,6 +143,9 @@ const verifyJWTi = (req:Request, res:Response, next:NextFunction) => {
         jwt.verify(token, process.env.JWT_SECRET!, (err:any, user:any)=>{
             if (err) return res.sendStatus(403)
             req.data = user.user
+            // res.cookie('jwt',jwt.sign({
+            //     user: req.data
+            // }, process.env.JWT_SECRET!, {expiresIn: '1d'}))
             next()
         })
     } else res.sendStatus(401)
@@ -184,6 +187,9 @@ app.post('/api/checkoutBook', verifyJWTi, (req, res)=>{
             let stmt = db.prepare(`update users set booksBorrowed = ? where uID = ?;`)
             stmt.run(JSON.stringify(booksBorrowed), user.uID)
 
+            console.log(book.borrowCount)
+            console.log(book.copyCount)
+            book['borrowCount'] += 1
             stmt = db.prepare(`update books set borrowCount = borrowCount + 1 where bID = ?;`)
             stmt.run(book.bID)
 

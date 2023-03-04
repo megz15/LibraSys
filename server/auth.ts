@@ -19,7 +19,19 @@ passport.use(new Strategy(googleOptions,
         let user = getUser('email', profile.emails[0].value)
 
         if (!user) { // If user doesn't exist, create new user in database
-            createUser(profile.id, profile.emails[0].value, profile.name.givenName, profile.displayName)
+
+            // Not going to do error handling here to check
+            // if the fields exist previously
+            // since the ones that are supposed to be unique
+            // (id, email and username)
+            // are guaranteed to be unique within the same org
+
+            createUser(
+                profile.id,
+                profile.emails[0].value,
+                profile.name.givenName,
+                profile.emails[0].value.split('@')[0] //profile.displayName
+            )
             user = getUser('email', profile.emails[0].value)
         }
         

@@ -1,5 +1,7 @@
 <script>
     export let book
+
+    // let checkedOut = false
     // export let onClose
     let open = true
 
@@ -12,6 +14,16 @@
     // import Button, { Label } from '@smui/button';
 
     import { onMount } from 'svelte';
+    // import { setContext } from 'svelte'
+    // import { writable } from 'svelte/store';
+
+    // const context = writable(null);
+
+    // const handleClick = () => {
+    //     context.set(checkedOut);
+    // };
+
+    // setContext('checkedOut', context);
 
     let Dialog
     let Title
@@ -43,7 +55,7 @@
 </script>
 
 <main>
-
+    <!-- bind:open -->
     {#if Dialog}
         <svelte:component this={Dialog} bind:open>
             <Title>Book</Title>
@@ -63,13 +75,18 @@
                         ), headers: {
                             'Content-Type': 'application/json'
                         }}) .then(res => res.json())
-                            .then(res => console.log(res))
+                            .then(res => {
+                                if (res['message'] == 'Book checked out') {
+                                    location.reload()
+                                } // else checkedOut = false
+                                // handleClick()
+                            })
                     }}>
                         <Label>Checkout Book</Label>
                     </svelte:component>
-                    <svelte:component this={Button} on:click={()=>open=false}>
+                    <Button>
                         <Label>Close</Label>
-                    </svelte:component>
+                    </Button>
                 {/if}
             </Actions>
         </svelte:component>
