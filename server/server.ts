@@ -3,12 +3,21 @@ import express, { Request, Response, NextFunction } from 'express'
 import type { UserType, Book } from './types'
 import cookieParser from 'cookie-parser'
 import Database from 'better-sqlite3'
-import * as jwt from "jsonwebtoken"
+import { createClient } from 'redis'
+import * as jwt from 'jsonwebtoken'
 import passport from 'passport'
 require('svelte/register')
 import path from 'path'
 import fs from 'fs'
 import './auth.ts'
+
+// Initializing redis client
+const redisClient = createClient({url:'redis://localhost:6379'});
+(async () => {
+    redisClient.on("error", (error) => console.error(`❌[server]: Redis Client Error: ${error}`));
+    await redisClient.connect();
+    console.log('✅[server]: Redis Client connected!')
+})();
 
 const app:express.Application = express()
 const port:number = 3000
@@ -49,7 +58,7 @@ export function getUser(by:string, val:string):UserType[] {
 
 // Define a middleware function to log requests
 const logRequests = (req:Request, res:Response, next:NextFunction) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`)
+    console.log(`⏳[server]: [${new Date().toISOString()}] ${req.method} ${req.url}`)
     next()
 }
 app.use(logRequests)
@@ -60,14 +69,27 @@ app.use(logRequests)
 //     res.send('Index page')
 // })
 
-app.get('/search', (req, res) => {
+app.get('/search', async (req, res) => {
     let searchedBook = req.query.book || ''
-    let limit = req.query.limit || 50
+    let limit = req.query.limit || -1
 
     const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
-    
-    const stmt = db.prepare(`select * from books where lower(books.bName) like lower('%'|| $searchedBook ||'%') limit $limit`)
-    const books:Book[] = stmt.all({searchedBook, limit})
+
+    let books:Book[]
+
+    // Note: do error handling later in case of cache invalidation error and stuff
+
+    const cachedBookResult = await redisClient.get(`search:${searchedBook}`);
+    if (cachedBookResult) {
+        console.log('⚡[server]: Using cached results')
+        books = JSON.parse(cachedBookResult)
+    } else {
+        console.log('⚡[server]: Cached results not found, querying database')
+        const stmt = db.prepare(`select * from books where lower(books.bName) like lower('%'|| $searchedBook ||'%') limit $limit`)
+        books = stmt.all({searchedBook, limit})
+        
+        redisClient.set(`search:${searchedBook}`, JSON.stringify(books), {'EX':3600})
+    }
     
     // Rendering the component with the given props here doesn't work, data shows up as null
 
@@ -89,10 +111,10 @@ app.get('/search', (req, res) => {
 
 })
 
-app.get('/search/:bookID', (req, res)=>{
-    const book:Book = db.prepare(`select * from books where bID like '%'|| ? ||'%';`).get(req.params.bookID)
-    res.send(book)
-})
+// app.get('/search/:bookID', (req, res)=>{
+//     const book:Book = db.prepare(`select * from books where bID like '%'|| ? ||'%';`).get(req.params.bookID)
+//     res.send(book)
+// })
 
 app.get('/about', (req, res) => {
     const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
@@ -187,8 +209,6 @@ app.post('/api/checkoutBook', verifyJWTi, (req, res)=>{
             let stmt = db.prepare(`update users set booksBorrowed = ? where uID = ?;`)
             stmt.run(JSON.stringify(booksBorrowed), user.uID)
 
-            console.log(book.borrowCount)
-            console.log(book.copyCount)
             book['borrowCount'] += 1
             stmt = db.prepare(`update books set borrowCount = borrowCount + 1 where bID = ?;`)
             stmt.run(book.bID)
@@ -256,19 +276,13 @@ app.get('/api/initBooks', (req, res) => {
     res.send(`Initialized books: ${JSON.stringify(bookCount)}`)
 })
 
-// app.get('/api/getBooks', (req, res) => {
-//     const stmt = db.prepare(`select * from books`)
-//     const books:Book[] = stmt.all()
-//     res.json(books)
+// app.get('/api/searchBooks', (req,res)=>{
+//     let searchedBook = req.query.book
+//     let limit = req.query.limit || -1
+//     const stmt = db.prepare(`select * from books where lower(books.bName) like lower('%'|| $searchedBook ||'%') limit $limit`)
+//     const books:Book[] = stmt.all({searchedBook, limit})
+//     res.send(books)
 // })
-
-app.get('/api/searchBooks', (req,res)=>{
-    let searchedBook = req.query.book
-    let limit = req.query.limit || 50
-    const stmt = db.prepare(`select * from books where lower(books.bName) like lower('%'|| $searchedBook ||'%') limit $limit`)
-    const books:Book[] = stmt.all({searchedBook, limit})
-    res.send(books)
-})
 
 // app.use(handler)
 app.use(express.static(path.join(__dirname, '..', 'svelte', 'public')))
