@@ -1,5 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@500;600;800&display=swap');
+
 :root {
-    font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+    font-family: Raleway, Helvetica, Arial, sans-serif;
     font-size: 16px;
     line-height: 24px;
     font-weight: 400;
@@ -16,7 +18,7 @@
 }
 
 a {
-    font-weight: 500;
+    font-weight: 600;
     color: #646cff;
     text-decoration: inherit;
 }
@@ -48,7 +50,7 @@ h1 {
     /* text-align: center; */
 }
 
-button {
+input, button {
     border-radius: 8px;
     border: 1px solid transparent;
     padding: 0.6em 1.2em;
@@ -59,11 +61,13 @@ button {
     cursor: pointer;
     transition: border-color 0.25s;
 }
-button:hover {
+input:hover, button:hover {
     border-color: #646cff;
 }
-button:focus, button:focus-visible {
-    outline: 4px auto -webkit-focus-ring-color;
+button:active {
+    background-color: #535bf2;
+    /* transform: scale(0.85);
+    transition: transform 0.08s ease-out, border-color 0.25s; */
 }
 
 @media (prefers-color-scheme: light) {

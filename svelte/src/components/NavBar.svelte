@@ -1,21 +1,5 @@
-<!-- <script>
-    import { onMount } from 'svelte';
-
-    let Icon
-    let Label
-
-    onMount(async () => {
-        let module
-
-        module = await import('@smui/common');
-        Icon = module.Icon
-        Label = module.Label
-    });
-
-</script> -->
-
 <main>
-    <div class="nav">
+    <div>
         <a href="/">Home</a>
         <a href="/search">Search</a>
         <a href="/login">Login</a>

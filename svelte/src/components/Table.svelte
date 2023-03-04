@@ -69,7 +69,7 @@
     let isBookModalOpen = false
     let modal
 
-    function openModal(d) {
+    function openUserBookModal(d) {
         isBookModalOpen = true
         modal = new BookModal({
             target: document.body,
@@ -101,7 +101,11 @@
                 <svelte:component this={Row} on:click={
                     ()=>{
                         //location.href=`/search/${(JSON.stringify(d.bID).slice(1, -1))}`
-                        openModal(d)
+                        switch(location.pathname) {
+                            case '/search':
+                            case '/admin/books':
+                                openUserBookModal(d)
+                        }                        
                         // console.log(getContext('checkedOut'))
                         // isBookModalOpen = true
                     }

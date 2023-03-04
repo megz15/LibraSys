@@ -1,29 +1,9 @@
 <script>
     export let book
 
-    // let checkedOut = false
-    // export let onClose
     let open = true
 
-    // function close() {
-    //     open = false;
-    //     onClose();
-    // }
-
-    // import Dialog, { Title, Content, Actions } from '@smui/dialog';
-    // import Button, { Label } from '@smui/button';
-
     import { onMount } from 'svelte';
-    // import { setContext } from 'svelte'
-    // import { writable } from 'svelte/store';
-
-    // const context = writable(null);
-
-    // const handleClick = () => {
-    //     context.set(checkedOut);
-    // };
-
-    // setContext('checkedOut', context);
 
     let Dialog
     let Title
@@ -66,24 +46,34 @@
             </Content>
             <Actions>
                 {#if Button}
-                    <svelte:component this={Button} on:click={()=>{
-                        fetch('/api/checkoutBook', {method: 'POST', body:
-                            JSON.stringify({
-                                user: getUserFromCookie(document.cookie),
-                                book: book
-                            }
-                        ), headers: {
-                            'Content-Type': 'application/json'
-                        }}) .then(res => res.json())
-                            .then(res => {
-                                if (res['message'] == 'Book checked out') {
-                                    location.reload()
-                                } // else checkedOut = false
-                                // handleClick()
-                            })
-                    }}>
-                        <Label>Checkout Book</Label>
-                    </svelte:component>
+                    {#if location.pathname == '/search'}
+                        <svelte:component this={Button} on:click={()=>{
+                            fetch('/api/checkoutBook', {method: 'POST', body:
+                                JSON.stringify({
+                                    user: getUserFromCookie(document.cookie),
+                                    book: book
+                                }
+                            ), headers: {
+                                'Content-Type': 'application/json'
+                            }}) .then(res => res.json())
+                                .then(res => {
+                                    if (res['message'] == 'Book checked out') {
+                                        location.reload()
+                                    }
+                                })
+                        }}>
+                            <Label>Checkout Book</Label>
+                        </svelte:component>
+                    {:else if location.pathname == '/admin/books'}
+                        <svelte:component this={Button} on:click={()=>{
+                            location.href=`/admin/books/${book['bID']}`
+                        }}>
+                            <Label>Update Book</Label>
+                        </svelte:component>
+                        <Button>
+                            <Label>Delete Book</Label>
+                        </Button>
+                    {/if}
                     <Button>
                         <Label>Close</Label>
                     </Button>
