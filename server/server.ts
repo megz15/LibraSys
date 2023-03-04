@@ -1,11 +1,12 @@
 // Dependencies
 import express, { Request, Response, NextFunction } from 'express'
-import type { UserType, Book } from './types'
+import type { UserType, Book, CheckoutBook } from './types'
 import cookieParser from 'cookie-parser'
 import Database from 'better-sqlite3'
 import { createClient } from 'redis'
 import * as jwt from 'jsonwebtoken'
 import passport from 'passport'
+import cron from 'node-cron'
 require('svelte/register')
 import path from 'path'
 import fs from 'fs'
@@ -28,6 +29,32 @@ app.use(express.json())
 // Db initialization
 const db = new Database('./server/data.db', {verbose: console.log})
 db.pragma('journal_mode = WAL')
+
+async function checkOverdueBooks() {
+    console.log('')
+    const users:UserType[] = db.prepare(`select * from users where booksBorrowed not like '[]';`).all()
+    users.forEach(user => {
+        JSON.parse(user.booksBorrowed).forEach((book: CheckoutBook) => {
+            const timeElapsed = Date.now() - book.timeWhenCheckedOut
+            const oneWeek  =  7*24*60*60*1000
+            const twoWeeks = 14*24*60*60*1000
+            if (timeElapsed >= oneWeek) {
+                // Send an email reminder to the user
+                console.log('Send an email reminder to the user')
+            } else if (timeElapsed >= twoWeeks) {
+                // Change flag isPenalized to 1
+                console.log('Change flag isPenalized to 1')
+            }
+        });
+    });
+}
+
+cron.schedule('0 0 * * *', checkOverdueBooks)
+cron.schedule('1 * * * *', ()=>{console.log('⚡[server]: still alive')})
+
+app.get('/getCronJobs', (req, res)=>{
+    res.send(cron.getTasks());
+})
 
 db.exec(`create table if not exists users (
     uID text primary key unique,
@@ -195,9 +222,15 @@ app.post('/api/checkoutBook', verifyJWTi, (req, res)=>{
 
     if (book.borrowCount < book.copyCount) {
 
-        let booksBorrowed:Book[] = JSON.parse(user.booksBorrowed)
+        let booksBorrowed:CheckoutBook[] = JSON.parse(user.booksBorrowed)
         if (booksBorrowed.length < 3) {
-            booksBorrowed.push(book)
+            booksBorrowed.push({
+                timeWhenCheckedOut: req.body.time,
+                bID: book.bID,
+                bName: book.bName,
+                author: book.author,
+                genre: book.genre
+            })
 
             let userHavingBorrowedBooks = user
             userHavingBorrowedBooks.booksBorrowed = JSON.stringify(booksBorrowed)
@@ -217,6 +250,11 @@ app.post('/api/checkoutBook', verifyJWTi, (req, res)=>{
         } else res.json({message: 'Cannot checkout more than 3 books'})
 
     } else res.json({message: 'No copies available'})
+})
+
+app.get('/api/getUsersWithBooks', verifyJWTi, (req, res)=>{
+    const users:UserType[] = db.prepare(`select * from users where booksBorrowed not like '[]';`).all()
+    res.json({users:users})
 })
 
 // app.get('/admin', verifyJWTi, (req, res)=>{
@@ -275,14 +313,6 @@ app.get('/api/initBooks', (req, res) => {
     }
     res.send(`Initialized books: ${JSON.stringify(bookCount)}`)
 })
-
-// app.get('/api/searchBooks', (req,res)=>{
-//     let searchedBook = req.query.book
-//     let limit = req.query.limit || -1
-//     const stmt = db.prepare(`select * from books where lower(books.bName) like lower('%'|| $searchedBook ||'%') limit $limit`)
-//     const books:Book[] = stmt.all({searchedBook, limit})
-//     res.send(books)
-// })
 
 // app.use(handler)
 app.use(express.static(path.join(__dirname, '..', 'svelte', 'public')))

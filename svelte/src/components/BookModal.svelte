@@ -51,7 +51,8 @@
                             fetch('/api/checkoutBook', {method: 'POST', body:
                                 JSON.stringify({
                                     // user: getUserFromCookie(document.cookie),
-                                    book: book
+                                    book: book,
+                                    time: Date.now()
                                 }
                             ), headers: {
                                 'Content-Type': 'application/json'
