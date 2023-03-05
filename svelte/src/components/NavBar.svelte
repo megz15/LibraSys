@@ -21,6 +21,9 @@
             <button id="account-button" on:click={() => location.href = '/profile'}>
                 <span>Your Profile</span>
             </button>
+            <button id="account-button" on:click={() => location.href = '/admin'}>
+                <span>Admin Panel</span>
+            </button>
         {/if}
     </div>
 </div>
@@ -31,7 +34,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        backdrop-filter: blur(2px) brightness(0.4);
+        backdrop-filter: blur(5px) brightness(0.4);
         position: fixed;
         top: 0;
         left: 0;
@@ -50,6 +53,8 @@
     }
 
     #account-stuff {
+        display: flex;
+        gap: 5px;
         padding-right: 5%;
     }
 

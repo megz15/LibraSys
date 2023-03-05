@@ -1,13 +1,33 @@
 <script>
 
     export let data
+    import UserBookList from "../components/UserBookList.svelte";
     
 </script>
 
-<main>
-    <h1>Hello, {data.fName}!</h1><br>
-    {#if data.isAdmin}
-        <h1>You're an admin!</h1><br>
-    {/if}
-    Your details: <pre><code>{JSON.stringify(data, null, 2)}</code></pre>
-</main>
+<h1>{#if data.isAdmin}Welcome{:else}Hello{/if}, {data.fName}!</h1><br>
+
+<div class="profile-columns">
+    <UserBookList data={JSON.parse(data.booksBorrowed)} />
+    <div>
+        User ID: {data.uID}<br>
+        Email: {data.email}<br>
+        Name: <input bind:value={data.fName}><br>
+        Username: <input bind:value={data.uName}><br>
+        Admin? {data.isAdmin}<br>
+        Penalized? {data.isPenalized}<br>
+    </div>
+</div>
+
+<!-- Your details: <pre><code>{JSON.stringify(data, null, 2)}</code></pre> -->
+
+<style>
+    .profile-columns {
+        display: flex;
+        align-items: center;
+        gap: 5%;
+        padding-left: 5%;
+        padding-right: 5%;
+        overflow: hidden;
+    }
+</style>

@@ -48,7 +48,7 @@ input, button {
     font-size: 1em;
     font-weight: 500;
     font-family: inherit;
-    background-color: #c4c4c4;
+    background-color: whitesmoke;
     cursor: pointer;
     transition: border-color 0.25s;
 }

@@ -92,10 +92,6 @@
 
 <main>
 
-    <!-- {#if isBookModalOpen}
-        <BookModal onClose={()=>isBookModalOpen = false}/>
-    {/if} -->
-
     {#if DataTable}
     <DataTable stickyHeader style="width: 100%;">
         <Head>
@@ -109,16 +105,14 @@
             {#each slice as d}
                 <svelte:component this={Row} on:click={
                     ()=>{
-                        //location.href=`/search/${(JSON.stringify(d.bID).slice(1, -1))}`
                         switch(location.pathname) {
+                            case '/admin/users':
+                                openUserUserModal(d)
+                                break
                             case '/search':
                             case '/admin/books':
                                 openUserBookModal(d)
-                            case '/admin/users':
-                                openUserUserModal(d)
                         }                        
-                        // console.log(getContext('checkedOut'))
-                        // isBookModalOpen = true
                     }
                 }>
                     {#each Object.keys(d) as p}
