@@ -128,22 +128,36 @@ app.get('/search', async (req, res) => {
     let searchedBook = req.query.book || ''
     let limit = req.query.limit || -1
 
+    let genre = req.query.genre || ''
+    let author = req.query.author || ''
+
     const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
 
     let books:Book[]
 
     // Note: do error handling later in case of cache invalidation error and stuff
 
-    const cachedBookResult = await redisClient.get(`search:${searchedBook}`);
+    const cachedBookResult = await redisClient.get(
+        `search:${searchedBook}&genre:${genre}&author:${author}`
+    );
     if (cachedBookResult) {
         console.log('⚡[server]: Using cached results')
         books = JSON.parse(cachedBookResult)
     } else {
         console.log('⚡[server]: Cached results not found, querying database')
-        const stmt = db.prepare(`select * from books where lower(books.bName) like lower('%'|| $searchedBook ||'%') limit $limit`)
-        books = stmt.all({searchedBook, limit})
+        const stmt = db.prepare(
+            `select * from books
+            where lower(books.bName ) like lower('%'|| ? ||'%')
+              and lower(books.genre ) like lower('%'|| ? ||'%')
+              and lower(books.author) like lower('%'|| ? ||'%')
+            limit ?`
+        )
+        books = stmt.all(searchedBook, genre, author, limit)
         
-        redisClient.set(`search:${searchedBook}`, JSON.stringify(books), {'EX':3600})
+        redisClient.set(
+            `search:${searchedBook}&genre:${genre}&author:${author}`,
+            JSON.stringify(books), {'EX':3600}
+        )
     }
     
     // Rendering the component with the given props here doesn't work, data shows up as null
@@ -320,13 +334,19 @@ app.post('/api/checkoutBook', verifyJWTi, async (req, res)=>{
 
 // Delete redis cache
 
-app.post('/api/rebuildCache', verifyJWTi, (req, res)=>{
+app.post('/api/rebuildCache', verifyJWTi, async (req, res)=>{
     if (!req.data.isAdmin) res.sendStatus(403)
     
     let searchedBook:Book = req.body.searchTerm
 
     try {
-        redisClient.del(`search:${searchedBook}`)
+        await redisClient.keys('search:*')
+            .then(res => {
+                res.forEach(async e => {
+                    await redisClient.del(e)
+                    console.log(`Deleted ${e}\n`)
+                });
+            })
         res.json({message: `Delete cache for ${searchedBook}`})
     } catch (e) {
         res.json({message: `Could not rebuild cache for ${searchedBook}: ${e}`})
