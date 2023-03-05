@@ -279,7 +279,7 @@ app.post('/api/rebuildCache', verifyJWTi, (req, res)=>{
 })
 
 app.post('/api/getUsersWithBook', verifyJWTi, (req, res)=>{
-    const stmt = db.prepare(`select * from users where booksBorrowed like '%{"bID":"'|| ? ||'",%';`)
+    const stmt = db.prepare(`select * from users where booksBorrowed like '%"bID":"'|| ? ||'"%';`)
     const users:UserType[] = stmt.all(req.body.bID)
     res.json({users:users})
 })
@@ -360,6 +360,27 @@ app.post('/api/updateBook', verifyJWTi, (req, res)=>{
                 book.bID, book.bName, book.genre, book.author, book.copyCount,
                 originalBookID
             )
+
+            stmt = db.prepare(`select * from users where booksBorrowed like '%"bID":"'|| ? ||'"%';`)
+            const users:UserType[] = stmt.all(originalBookID)
+
+            users.forEach(user => {
+                let booksBorrowed:CheckoutBook[] = JSON.parse(user.booksBorrowed)
+                booksBorrowed.forEach(bookBorrowed => {
+                    if (bookBorrowed.bID === originalBookID) {
+                        bookBorrowed.bID = book.bID
+                    }
+                });
+                if (user.booksBorrowed != JSON.stringify(booksBorrowed)) {
+                    console.log(`Updating user ${user.uName}`)
+                    db.prepare(`
+                        update users
+                        set booksBorrowed = ?
+                        where uID = ?
+                    ;`).run(JSON.stringify(booksBorrowed), user.uID)
+                }
+            });
+
             res.json({message: `Book ${originalBookID} updated to: ${JSON.stringify(book)}`})
         } catch (e) {
             res.json({message: `Book couldn't be updated: ${e}`})
