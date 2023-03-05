@@ -1,11 +1,13 @@
 <script>
-    export let book
+    export let user
 
-    let bID = book.bID
-    let bName = book.bName
-    let genre = book.genre
-    let author = book.author
-    let copyCount = book.copyCount
+    let uID = user.uID
+    let email = user.email
+    let fName = user.fName
+    let uName = user.uName
+    let booksBorrowed = user.booksBorrowed
+    let isAdmin = user.isAdmin
+    let isPenalized = user.isPenalized
 
     import { onMount } from 'svelte';
 
@@ -37,38 +39,40 @@
 <main>
     {#if Dialog}
         <svelte:component this={Dialog} open>
-            <Title>Book</Title>
+            <Title>User</Title>
             <Content>
-                Code  : <input bind:value={    bID    }><br>
-                Name  : <input bind:value={   bName   }><br>
-                Genre : <input bind:value={   genre   }><br>
-                Author: <input bind:value={   author  }><br>
-                Copies: <input bind:value={ copyCount }><br>
+                User ID: <input bind:value={uID}><br>
+                Email: <input bind:value={email}><br>
+                Name: <input bind:value={fName}><br>
+                Username: <input bind:value={uName}><br>
+                Books Borrowed: <input bind:value={booksBorrowed}><br>
+                Admin? <input bind:value={isAdmin}><br>
+                Penalized? <input bind:value={isPenalized}><br>
             </Content>
             <Actions>
                 {#if Button}
                     <svelte:component this={Button} on:click={()=>{
-                        let updatedBook = {
-                            bID: bID,
-                            bName: bName,
-                            genre: genre,
-                            author: author,
-                            copyCount: copyCount
+                        let updatedUser = {
+                            uID: uID,
+                            email: email,
+                            fName: fName,
+                            uName: uName,
+                            booksBorrowed: booksBorrowed,
+                            isAdmin: isAdmin,
+                            isPenalized: isPenalized
                         }
 
-                        // console.log(JSON.stringify(updatedBook))
-
-                        fetch('/api/updateBook', {method: 'POST', body:
+                        fetch('/api/updateUser', {method: 'POST', body:
                             JSON.stringify({
-                                originalBookID: book.bID,
-                                updatedBook: updatedBook
+                                originalUserID: user.uID,
+                                updatedUser: updatedUser
                             }
                         ), headers: {
                             'Content-Type': 'application/json'
                         }}) .then(res => res.json())
                             .then(res => {
                                 console.log(res)
-                                if (res['message'].startsWith(`Book ${book.bID} updated to: `)){
+                                if (res['message'].startsWith(`User ${user.uID} updated to: ${JSON.stringify(updatedUser)}`)){
                                     location.reload()
                                 }
                             })

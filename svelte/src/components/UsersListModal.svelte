@@ -29,7 +29,7 @@
     });
 
     function returnHandler(uID) {
-        fetch('/api/updateUser', {method: 'POST', body:JSON.stringify({
+        fetch('/api/updateUserAfterBookReturn', {method: 'POST', body:JSON.stringify({
             uID: uID,
             bID: bID
         }), headers: {

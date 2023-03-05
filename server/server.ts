@@ -343,7 +343,7 @@ app.post('/api/getUsersWithBook', verifyJWTi, (req, res)=>{
 
 // Update user after returning book
 
-app.post('/api/updateUser', verifyJWTi, (req, res)=>{
+app.post('/api/updateUserAfterBookReturn', verifyJWTi, (req, res)=>{
     const uID = req.body.uID
     const bID = req.body.bID
 
@@ -446,6 +446,38 @@ app.post('/api/updateBook', verifyJWTi, (req, res)=>{
     }
 })
 
+// Update user
+
+app.post('/api/updateUser', verifyJWTi, (req, res)=>{
+    if (!req.data.isAdmin) res.sendStatus(403)
+
+    else {
+        try {
+            let user:UserType = req.body.updatedUser
+            let originalUserID:string = req.body.originalUserID
+            let stmt = db.prepare(`
+                update users set
+                    uID = ?,
+                    email = ?,
+                    fName = ?,
+                    uName = ?,
+                    booksBorrowed = ?,
+                    isAdmin = ?,
+                    isPenalized = ?
+                where uID = ?
+            ;`)
+            stmt.run(
+                user.uID, user.email, user.fName, user.uName, user.booksBorrowed, user.isAdmin, user.isPenalized,
+                originalUserID
+            )
+
+            res.json({message: `User ${originalUserID} updated to: ${JSON.stringify(user)}`})
+        } catch (e) {
+            res.json({message: `User couldn't be updated: ${e}`})
+        }
+    }
+})
+
 // Delete book entry
 
 app.post('/api/deleteBook', verifyJWTi, (req, res)=>{
@@ -458,6 +490,22 @@ app.post('/api/deleteBook', verifyJWTi, (req, res)=>{
             res.json({message: `Book ${bID} deleted succesfully`})
         } catch (e) {
             res.json({message: `Book couldn't be deleted: ${e}`})
+        }
+    }
+})
+
+// Delete user entry
+
+app.post('/api/deleteUser', verifyJWTi, (req, res)=>{
+    if (!req.data.isAdmin) res.sendStatus(403)
+
+    else {
+        try {
+            let uID:string = req.body.uID
+            db.prepare(`delete from users where uID = ?;`).run(uID)
+            res.json({message: `User ${uID} deleted succesfully`})
+        } catch (e) {
+            res.json({message: `User couldn't be deleted: ${e}`})
         }
     }
 })

@@ -2,8 +2,6 @@
     export let searchTerm
     export let book
 
-    let open = true
-
     import { onMount } from 'svelte';
 
     let Dialog
@@ -29,11 +27,11 @@
         Label = module.Label
     });
 
-    import AdminUpdateEntry from './AdminUpdateEntry.svelte';
+    import AdminUpdateBook from './AdminUpdateBook.svelte';
     import UsersListModal from './UsersListModal.svelte';
     
     function openUpdateBookModal(d) {
-        new AdminUpdateEntry({
+        new AdminUpdateBook({
             target: document.body,
             props: {
                 book: d
@@ -54,9 +52,8 @@
 </script>
 
 <main>
-    <!-- bind:open -->
     {#if Dialog}
-        <svelte:component this={Dialog} bind:open>
+        <svelte:component this={Dialog} open>
             <Title>Book</Title>
             <Content>
                 {#each Object.keys(book) as i}

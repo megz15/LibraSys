@@ -1,13 +1,12 @@
 <script>
     export let data
-    import AdminCreateEntry from "../components/AdminCreateEntry.svelte";
+    import AdminCreateBook from "../components/AdminCreateBook.svelte";
     import Table from "../components/Table.svelte";
 </script>
 
 <main>
     <h1>Admin panel</h1>
-    <!-- <button>Create new entry</button><br> -->
 
     <Table data={data} searchTerm=''/>
-    <AdminCreateEntry />
+    <AdminCreateBook />
 </main>

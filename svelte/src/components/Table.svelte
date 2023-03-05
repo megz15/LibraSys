@@ -67,6 +67,7 @@
     }
 
     import BookModal from './BookModal.svelte';
+    import UserModal from './UserModal.svelte';
 
     function openUserBookModal(d) {
         new BookModal({
@@ -74,6 +75,15 @@
             props: {
                 searchTerm: searchTerm,
                 book: d
+            },
+        })
+    }
+
+    function openUserUserModal(d) {
+        new UserModal({
+            target: document.body,
+            props: {
+                user: d
             },
         })
     }
@@ -104,6 +114,8 @@
                             case '/search':
                             case '/admin/books':
                                 openUserBookModal(d)
+                            case '/admin/users':
+                                openUserUserModal(d)
                         }                        
                         // console.log(getContext('checkedOut'))
                         // isBookModalOpen = true
