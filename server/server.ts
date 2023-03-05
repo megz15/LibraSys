@@ -230,7 +230,7 @@ app.post('/api/checkoutBook', verifyJWTi, (req, res)=>{
         if (booksBorrowed.length < 3) {
 
             // Check if user has already checked out the book
-            if (booksBorrowed.some(checkoutBook => checkoutBook.bID = book.bID)) {
+            if (booksBorrowed.some(checkoutBook => checkoutBook.bID === book.bID)) {
                 res.json({message: 'This book has already been checked out by this user'})
             } else {
 
@@ -257,7 +257,7 @@ app.post('/api/checkoutBook', verifyJWTi, (req, res)=>{
                 stmt.run(book.bID)
 
                 res.json({message: 'Book checked out'})
-                
+
             }
 
         } else res.json({message: 'Cannot checkout more than 3 books'})
