@@ -9,12 +9,7 @@
     color-scheme: light dark;
     color: rgba(255, 255, 255, 0.87);
     background-color: #242424;
-
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    -webkit-text-size-adjust: 100%;
+    margin: auto;
 }
 
 a {
@@ -27,27 +22,28 @@ a:hover {
 }
 
 body {
-    margin: 0;
-    /* display: flex; */
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+    background-image: url(../static/bg.jpg);
+    background-size: cover;
     /* place-items: center; */
-    min-width: 320px;
-    min-height: 100vh;
 }
 
 h1 {
     font-size: 3.2em;
     line-height: 1.1;
-}
-
-.card {
-    padding: 2em;
+    /* display: flex;
+    justify-content: center; */
 }
 
 #app {
-    max-width: 1280px;
+    /* max-width: 1280px; */
     margin: 0 auto;
-    padding: 2rem;
-    /* text-align: center; */
+    /* padding: 2rem; */
+    text-align: center;
 }
 
 input, button {

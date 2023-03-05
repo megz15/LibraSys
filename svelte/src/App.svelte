@@ -7,8 +7,10 @@
         'About': About,
         'Profile': Profile,
         'Admin': Admin,
+        'Home': Home
     }
     
+    import Home from "./pages/Home.svelte";
     import Search from "./pages/Search.svelte";
     import About from "./pages/About.svelte";
     import Profile from "./pages/Profile.svelte";

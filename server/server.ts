@@ -182,6 +182,17 @@ app.get('/search', async (req, res) => {
 
 // About route
 
+app.get('/', (req, res) => {
+    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
+    const data = require('../svelte/src/pages/Home.svelte').default.render()
+    res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
+    ${data.html} 
+    <script>
+        window.__COMP__ = "Home";
+    </script>
+    </div>`))
+})
+
 app.get('/about', (req, res) => {
     const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
     const data = require('../svelte/src/pages/About.svelte').default.render()
