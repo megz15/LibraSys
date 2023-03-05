@@ -174,6 +174,7 @@ app.get('/search', async (req, res) => {
     ${data.html} 
     <script>
         window.__COMP__ = "Search";
+        window.__ISLOGGEDIN__ = ${!!req.cookies.jwt};
         window.__DATA__ = ${JSON.stringify(books)};
     </script>
     </div>`))
@@ -189,6 +190,7 @@ app.get('/', (req, res) => {
     ${data.html} 
     <script>
         window.__COMP__ = "Home";
+        window.__ISLOGGEDIN__ = ${!!req.cookies.jwt};
     </script>
     </div>`))
 })
@@ -200,6 +202,7 @@ app.get('/about', (req, res) => {
     ${data.html} 
     <script>
         window.__COMP__ = "About";
+        window.__ISLOGGEDIN__ = ${!!req.cookies.jwt};
     </script>
     </div>`))
 })
@@ -241,6 +244,7 @@ app.get('/profile', verifyJWTi, (req, res) => {
     ${data.html} 
     <script>
         window.__COMP__ = "Profile";
+        window.__ISLOGGEDIN__ = ${!!req.cookies.jwt};
         window.__DATA__ = ${JSON.stringify(req.data)};
     </script>
     </div>`))
@@ -266,6 +270,7 @@ app.get('/admin/users', verifyJWTi, (req, res) => {
     ${data.html} 
     <script>
         window.__COMP__ = "Admin";
+        window.__ISLOGGEDIN__ = ${!!req.cookies.jwt};
         window.__DATA__ = ${JSON.stringify(users)};
     </script>
     </div>`))
@@ -289,6 +294,7 @@ app.get('/admin/books', verifyJWTi, (req, res) => {
     ${data.html}
     <script>
         window.__COMP__ = "Admin";
+        window.__ISLOGGEDIN__ = ${!!req.cookies.jwt};
         window.__DATA__ = ${JSON.stringify(books)};
     </script>
     </div>`))

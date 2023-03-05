@@ -1,3 +1,8 @@
+<script>
+    export let isLoggedIn
+    console.log(isLoggedIn)
+</script>
+
 <div id="navbar">
     <div id="logo"><h4>LibraSys</h4></div>
     <div id="route-group">
@@ -7,7 +12,17 @@
         <!-- <a href="/profile">Profile</a> -->
         <a href="/about">About</a>
     </div>
-    <div id="account-button"><button>Login</button></div>
+    <div id="account-stuff">
+        {#if !isLoggedIn}
+            <button id="account-button" on:click={() => location.href = '/login'}>
+                <span>Login With&nbsp;</span><div id="google"/>
+            </button>
+        {:else}
+            <button id="account-button" on:click={() => location.href = '/profile'}>
+                <span>Your Profile</span>
+            </button>
+        {/if}
+    </div>
 </div>
 
 <style>
@@ -16,28 +31,31 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        color: #888;
         backdrop-filter: blur(2px) brightness(0.4);
         position: fixed;
         top: 0;
         left: 0;
         margin: 0 auto;
-        /* padding: 1em; */
     }
 
     #logo {
-        padding-left: 5em;
+        padding-left: 5%;
     }
 
     #route-group {
         display: flex;
         justify-content: space-between;
-        /* padding: 1em; */
-        width: 30em;
+        width: 40%;
+        /* width: 30em; */
+    }
+
+    #account-stuff {
+        padding-right: 5%;
     }
 
     #account-button {
-        padding-right: 5em;
+        display: flex;
+        align-items: center;
     }
 
 </style>

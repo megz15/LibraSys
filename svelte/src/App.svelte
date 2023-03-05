@@ -1,6 +1,7 @@
 <script>
     export let component
     export let data
+    export let isLoggedIn
     
     const routes = {
         'Search': Search,
@@ -21,7 +22,7 @@
 <!-- Uisng conditional rendering according to the route -->
 <!-- Edit: using svelte:component instead-->
 
-<NavBar />
+<svelte:component this={NavBar} isLoggedIn={isLoggedIn}/>
 <svelte:component this={routes[component]} data={data}/>
 
 <!-- <Index data = {data}/> -->
