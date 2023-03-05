@@ -344,6 +344,20 @@ app.post('/api/updateBook', verifyJWTi, (req, res)=>{
     }
 })
 
+app.post('/api/deleteBook', verifyJWTi, (req, res)=>{
+    if (!req.data.isAdmin) res.sendStatus(403)
+
+    else {
+        try {
+            let bID:string = req.body.bID
+            db.prepare(`delete from books where bID = ?;`).run(bID)
+            res.json({message: `Book ${bID} deleted succesfully`})
+        } catch (e) {
+            res.json({message: `Book couldn't be deleted: ${e}`})
+        }
+    }
+})
+
 app.get('/api/initBooks', (req, res) => {
     var bookCount = db.prepare('select count(*) from books').get()['count(*)']
     if (!bookCount) {

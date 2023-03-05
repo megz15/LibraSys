@@ -76,16 +76,31 @@
                             <Label>Checkout Book</Label>
                         </svelte:component>
                     {:else if location.pathname == '/admin/books'}
+                        
                         <svelte:component this={Button} on:click={()=>{
                             // location.href=`/admin/books/${book['bID']}`
                             openUpdateBookModal(book)
                         }}>
                             <Label>Update Book</Label>
                         </svelte:component>
-                        <Button>
+                        
+                        <svelte:component this={Button} on:click={()=>{
+                            fetch('/api/deleteBook', {method: 'POST', body: JSON.stringify({
+                                bID: book.bID
+                            }), headers: {
+                                'Content-Type': 'application/json'
+                            }}) .then(res => res.json())
+                                .then(res => {
+                                    console.log(res)
+                                    if (res['message'] == `Book ${book.bID} deleted succesfully`){
+                                        location.reload()
+                                    }
+                                })
+                        }}>
                             <Label>Delete Book</Label>
-                        </Button>
-                    {/if}
+                        </svelte:component>
+                    
+                        {/if}
                     <Button>
                         <Label>Close</Label>
                     </Button>
