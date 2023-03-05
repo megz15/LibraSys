@@ -228,29 +228,38 @@ app.post('/api/checkoutBook', verifyJWTi, (req, res)=>{
 
         let booksBorrowed:CheckoutBook[] = JSON.parse(user.booksBorrowed)
         if (booksBorrowed.length < 3) {
-            booksBorrowed.push({
-                timeWhenCheckedOut: req.body.time,
-                bID: book.bID,
-                // bName: book.bName,
-                // author: book.author,
-                // genre: book.genre
-            })
 
-            let userHavingBorrowedBooks = user
-            userHavingBorrowedBooks.booksBorrowed = JSON.stringify(booksBorrowed)
+            // Check if user has already checked out the book
+            if (booksBorrowed.some(checkoutBook => checkoutBook.bID = book.bID)) {
+                res.json({message: 'This book has already been checked out by this user'})
+            } else {
 
-            res.cookie('jwt',jwt.sign({
-                user: userHavingBorrowedBooks
-            }, process.env.JWT_SECRET!, {expiresIn: '1d'}), {httpOnly: true})
+                booksBorrowed.push({
+                    timeWhenCheckedOut: req.body.time,
+                    bID: book.bID,
+                    // bName: book.bName,
+                    // author: book.author,
+                    // genre: book.genre
+                })
 
-            let stmt = db.prepare(`update users set booksBorrowed = ? where uID = ?;`)
-            stmt.run(JSON.stringify(booksBorrowed), user.uID)
+                let userHavingBorrowedBooks = user
+                userHavingBorrowedBooks.booksBorrowed = JSON.stringify(booksBorrowed)
 
-            book['borrowCount'] += 1
-            stmt = db.prepare(`update books set borrowCount = borrowCount + 1 where bID = ?;`)
-            stmt.run(book.bID)
+                res.cookie('jwt',jwt.sign({
+                    user: userHavingBorrowedBooks
+                }, process.env.JWT_SECRET!, {expiresIn: '1d'}), {httpOnly: true})
 
-            res.json({message: 'Book checked out'})
+                let stmt = db.prepare(`update users set booksBorrowed = ? where uID = ?;`)
+                stmt.run(JSON.stringify(booksBorrowed), user.uID)
+
+                book['borrowCount'] += 1
+                stmt = db.prepare(`update books set borrowCount = borrowCount + 1 where bID = ?;`)
+                stmt.run(book.bID)
+
+                res.json({message: 'Book checked out'})
+                
+            }
+
         } else res.json({message: 'Cannot checkout more than 3 books'})
 
     } else res.json({message: 'No copies available'})
