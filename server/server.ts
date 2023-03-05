@@ -36,8 +36,8 @@ async function checkOverdueBooks() {
     users.forEach(user => {
         JSON.parse(user.booksBorrowed).forEach((book: CheckoutBook) => {
             const timeElapsed = Date.now() - book.timeWhenCheckedOut
-            const oneWeek  =  7*24*60*60*1000
-            const twoWeeks = 14*24*60*60*1000
+            const oneWeek  =  7*24*60*60*1000 // 1 week  in MS
+            const twoWeeks = 14*24*60*60*1000 // 2 weeks in MS
             if (timeElapsed >= oneWeek) {
                 // Send an email reminder to the user
                 console.log('Send an email reminder to the user')
@@ -77,6 +77,10 @@ db.exec(`create table if not exists books (
 
 export function createUser(gID:string, email:string, fName:string, uName:string, isAdmin=0) {
     db.prepare(`insert into users values(?, ?, ?, ?, '[]', ?, 0);`).run(gID, email, fName, uName, isAdmin)
+}
+
+function createBook(bID:string, bName:string, genre:string, author:string, copyCount=0) {
+    db.prepare(`insert into books values(?, ?, ?, ?, ?, 0);`).run(bID, bName, genre, author, copyCount)
 }
 
 export function getUser(by:string, val:string):UserType[] {
@@ -265,6 +269,8 @@ app.get('/api/getUsersWithBooks', verifyJWTi, (req, res)=>{
 // })
 
 app.get('/admin/users', verifyJWTi, (req, res) => {
+    if (!req.data.isAdmin) res.sendStatus(403)
+
     const stmt = db.prepare(`select * from users`)
     const users:UserType[] = stmt.all()
     
@@ -284,6 +290,8 @@ app.get('/admin/users', verifyJWTi, (req, res) => {
 })
 
 app.get('/admin/books', verifyJWTi, (req, res) => {
+    if (!req.data.isAdmin) res.sendStatus(403)
+
     const stmt = db.prepare(`select * from books`)
     const books:Book[] = stmt.all()
     
@@ -300,6 +308,20 @@ app.get('/admin/books', verifyJWTi, (req, res) => {
         window.__DATA__ = ${JSON.stringify(books)};
     </script>
     </div>`))
+})
+
+app.post('/api/createBook', verifyJWTi, (req, res)=>{
+    if (!req.data.isAdmin) res.sendStatus(403)
+
+    else {
+        try {
+            let book:Book = req.body.book
+            createBook(book.bID, book.bName, book.genre, book.author, book.copyCount)
+            res.json({message: `Book created with code ${book.bID}`})
+        } catch (e) {
+            res.json({message: `Book couldn't be created: ${e}`})
+        }
+    }
 })
 
 app.get('/api/initBooks', (req, res) => {
