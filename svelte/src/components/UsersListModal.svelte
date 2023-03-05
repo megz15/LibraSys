@@ -1,5 +1,7 @@
 <script>
+
     export let users
+    export let bID
 
     import { onMount } from 'svelte';
 
@@ -26,6 +28,39 @@
         Label = module.Label
     });
 
+    function returnHandler(uID) {
+        fetch('/api/updateUser', {method: 'POST', body:JSON.stringify({
+            uID: uID,
+            bID: bID
+        }), headers: {
+            'Content-Type': 'application/json'
+        }}) .then(res => res.json())
+            .then(res => ()=>{
+                console.log(res)
+            })
+
+        fetch('/api/returnBook', {method: 'POST', body: JSON.stringify({
+            bID: bID
+        }), headers: {
+            'Content-Type': 'application/json'
+        }}) .then(res => res.json())
+            .then(res => {
+                console.log(res)
+                location.reload()
+            })
+
+        // fetch('/api/rebuildCache', {method: 'POST', body:
+        //     JSON.stringify({
+        //         searchTerm: searchTerm
+        //     }), headers: {
+        //         'Content-Type': 'application/json'
+        // }}) .then(res => res.json())
+        //     .then(res => {
+        //         console.log(res)
+        //         location.reload()
+        //     })
+    }
+
 </script>
 
 <main>
@@ -35,7 +70,7 @@
             <Content>
                 {#each users as user}
                     <svelte:component this={Label} on:click={
-                        console.log(user)
+                        ()=>returnHandler(user.uID)
                     }>
                         {user.uName}
                     </svelte:component><br>

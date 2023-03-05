@@ -13,7 +13,7 @@ import fs from 'fs'
 import './auth.ts'
 
 // Initializing redis client
-const redisClient = createClient({url:'redis://localhost:6379'});
+export const redisClient = createClient({url:'redis://localhost:6379'});
 (async () => {
     redisClient.on("error", (error) => console.error(`❌[server]: Redis Client Error: ${error}`));
     await redisClient.connect();
@@ -27,7 +27,7 @@ app.use(cookieParser())
 app.use(express.json())
 
 // Db initialization
-const db = new Database('./server/data.db', {verbose: console.log})
+export const db = new Database('./server/data.db', {verbose: console.log})
 db.pragma('journal_mode = WAL')
 
 async function checkOverdueBooks() {
@@ -52,12 +52,8 @@ async function checkOverdueBooks() {
 cron.schedule('0 0 * * *', checkOverdueBooks)
 cron.schedule('1 * * * *', ()=>{console.log('⚡[server]: still alive')})
 
-app.get('/getCronJobs', (req, res)=>{
-    res.send(cron.getTasks());
-})
-
 db.exec(`create table if not exists users (
-    uID text primary key unique,
+    uID integer primary key unique,
     email text unique,
     fName text default null,
     uName text unique,
@@ -94,11 +90,39 @@ const logRequests = (req:Request, res:Response, next:NextFunction) => {
 }
 app.use(logRequests)
 
+declare global {
+    namespace Express {
+        interface Request {
+            data: UserType
+        }
+    }
+}
+
+// Define middleware to verify JWT token
+export const verifyJWTi = (req:Request, res:Response, next:NextFunction) => {
+    const token = req.cookies.jwt
+
+    if (token) {
+        jwt.verify(token, process.env.JWT_SECRET!, (err:any, user:any)=>{
+            if (err) return res.sendStatus(403)
+            req.data = user.user
+            // res.cookie('jwt',jwt.sign({
+            //     user: req.data
+            // }, process.env.JWT_SECRET!, {expiresIn: '1d'}))
+            next()
+        })
+    } else res.sendStatus(401)
+}
+
 // Routes
 
-// app.get('/', (req, res) => {
+// Index route
+
+// app.get('/', (req, res)=>{
 //     res.send('Index page')
 // })
+
+// Book search route
 
 app.get('/search', async (req, res) => {
     let searchedBook = req.query.book || ''
@@ -142,10 +166,7 @@ app.get('/search', async (req, res) => {
 
 })
 
-// app.get('/search/:bookID', (req, res)=>{
-//     const book:Book = db.prepare(`select * from books where bID like '%'|| ? ||'%';`).get(req.params.bookID)
-//     res.send(book)
-// })
+// About route
 
 app.get('/about', (req, res) => {
     const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
@@ -157,6 +178,8 @@ app.get('/about', (req, res) => {
     </script>
     </div>`))
 })
+
+// Authentication routes
 
 app.get('/login', 
     passport.authenticate('google', {scope: ['email', 'profile'], session:false})
@@ -171,38 +194,16 @@ app.get('/auth/google/callback',
     }
 )
 
+app.get('/auth/failure', (req, res)=>{
+    res.send('Something went wrong!')
+})
+
 app.get('/logout', (req, res)=>{
     res.clearCookie('jwt')
     res.redirect('/')
 })
 
-app.get('/auth/failure', (req, res)=>{
-    res.send('Something went wrong!')
-})
-
-declare global {
-    namespace Express {
-        interface Request {
-            data: UserType
-        }
-    }
-}
-
-// Define middleware to verify JWT token
-const verifyJWTi = (req:Request, res:Response, next:NextFunction) => {
-    const token = req.cookies.jwt
-
-    if (token) {
-        jwt.verify(token, process.env.JWT_SECRET!, (err:any, user:any)=>{
-            if (err) return res.sendStatus(403)
-            req.data = user.user
-            // res.cookie('jwt',jwt.sign({
-            //     user: req.data
-            // }, process.env.JWT_SECRET!, {expiresIn: '1d'}))
-            next()
-        })
-    } else res.sendStatus(401)
-}
+// Profile page route
 
 app.get('/profile', verifyJWTi, (req, res) => {
     const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
@@ -220,7 +221,59 @@ app.get('/profile', verifyJWTi, (req, res) => {
     </div>`))
 })
 
-app.post('/api/checkoutBook', verifyJWTi, (req, res)=>{
+// Admin routes
+
+// Admin panel to (C)RUD users
+
+app.get('/admin/users', verifyJWTi, (req, res) => {
+    if (!req.data.isAdmin) res.sendStatus(403)
+
+    const stmt = db.prepare(`select * from users`)
+    const users:UserType[] = stmt.all()
+    
+    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
+    
+    const data = require('../svelte/src/pages/Admin.svelte').default.render({
+        data: users
+    })
+
+    res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
+    ${data.html} 
+    <script>
+        window.__COMP__ = "Admin";
+        window.__DATA__ = ${JSON.stringify(users)};
+    </script>
+    </div>`))
+})
+
+// Admin panel to CRUD books
+
+app.get('/admin/books', verifyJWTi, (req, res) => {
+    if (!req.data.isAdmin) res.sendStatus(403)
+
+    const stmt = db.prepare(`select * from books`)
+    const books:Book[] = stmt.all()
+    
+    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
+    
+    const data = require('../svelte/src/pages/Admin.svelte').default.render({
+        data: books
+    })
+
+    res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
+    ${data.html}
+    <script>
+        window.__COMP__ = "Admin";
+        window.__DATA__ = ${JSON.stringify(books)};
+    </script>
+    </div>`))
+})
+
+// API routes
+
+// User book checkout
+
+app.post('/api/checkoutBook', verifyJWTi, async (req, res)=>{
     let book:Book = req.body.book
     let user:UserType = req.data
 
@@ -265,6 +318,8 @@ app.post('/api/checkoutBook', verifyJWTi, (req, res)=>{
     } else res.json({message: 'No copies available'})
 })
 
+// Delete redis cache
+
 app.post('/api/rebuildCache', verifyJWTi, (req, res)=>{
     if (!req.data.isAdmin) res.sendStatus(403)
     
@@ -272,11 +327,13 @@ app.post('/api/rebuildCache', verifyJWTi, (req, res)=>{
 
     try {
         redisClient.del(`search:${searchedBook}`)
-        res.json({message: `Rebuilt cache for ${searchedBook}`})
+        res.json({message: `Delete cache for ${searchedBook}`})
     } catch (e) {
         res.json({message: `Could not rebuild cache for ${searchedBook}: ${e}`})
     }
 })
+
+// Get users with a particular book
 
 app.post('/api/getUsersWithBook', verifyJWTi, (req, res)=>{
     const stmt = db.prepare(`select * from users where booksBorrowed like '%"bID":"'|| ? ||'"%';`)
@@ -284,47 +341,45 @@ app.post('/api/getUsersWithBook', verifyJWTi, (req, res)=>{
     res.json({users:users})
 })
 
-app.get('/admin/users', verifyJWTi, (req, res) => {
-    if (!req.data.isAdmin) res.sendStatus(403)
+// Update user after returning book
 
-    const stmt = db.prepare(`select * from users`)
-    const users:UserType[] = stmt.all()
-    
-    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
-    
-    const data = require('../svelte/src/pages/Admin.svelte').default.render({
-        data: users
-    })
+app.post('/api/updateUser', verifyJWTi, (req, res)=>{
+    const uID = req.body.uID
+    const bID = req.body.bID
 
-    res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
-    ${data.html} 
-    <script>
-        window.__COMP__ = "Admin";
-        window.__DATA__ = ${JSON.stringify(users)};
-    </script>
-    </div>`))
+    const booksBorrowed:string = db.prepare(`select booksBorrowed from users where uID = ?;`)
+        .get(uID)
+        .booksBorrowed
+    
+    let modifiedBooksBorrowed = JSON.parse(booksBorrowed).filter((obj: {
+        timeWhenCheckedOut: number,
+        bID: string
+    }) => obj.bID !== bID)
+
+    db.prepare(`
+        update users
+        set booksBorrowed = ?
+        where uID = ?
+    ;`).run(JSON.stringify(modifiedBooksBorrowed), uID)
+
+    res.json({message: `User ${uID} updated after returning ${bID}`})
 })
 
-app.get('/admin/books', verifyJWTi, (req, res) => {
-    if (!req.data.isAdmin) res.sendStatus(403)
+// Decrement borrow count after returning book
 
-    const stmt = db.prepare(`select * from books`)
-    const books:Book[] = stmt.all()
-    
-    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
-    
-    const data = require('../svelte/src/pages/Admin.svelte').default.render({
-        data: books
-    })
+app.post('/api/returnBook', verifyJWTi, (req, res)=>{
+    const bID = req.body.bID
 
-    res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
-    ${data.html}
-    <script>
-        window.__COMP__ = "Admin";
-        window.__DATA__ = ${JSON.stringify(books)};
-    </script>
-    </div>`))
+    try {
+        db.prepare(`update books set borrowCount = borrowCount - 1 where bID = ?;`).run(bID)
+
+        res.json({message: `Returned ${bID}`})
+    } catch (e) {
+        res.json({message: `Could not return ${e}`})
+    }
 })
+
+// Create new book entry
 
 app.post('/api/createBook', verifyJWTi, (req, res)=>{
     if (!req.data.isAdmin) res.sendStatus(403)
@@ -339,6 +394,9 @@ app.post('/api/createBook', verifyJWTi, (req, res)=>{
         }
     }
 })
+
+// Update existing book entry
+// and the users having that book
 
 app.post('/api/updateBook', verifyJWTi, (req, res)=>{
     if (!req.data.isAdmin) res.sendStatus(403)
@@ -388,6 +446,8 @@ app.post('/api/updateBook', verifyJWTi, (req, res)=>{
     }
 })
 
+// Delete book entry
+
 app.post('/api/deleteBook', verifyJWTi, (req, res)=>{
     if (!req.data.isAdmin) res.sendStatus(403)
 
@@ -402,6 +462,8 @@ app.post('/api/deleteBook', verifyJWTi, (req, res)=>{
     }
 })
 
+// Initialize some dummy books from a json file
+
 app.get('/api/initBooks', (req, res) => {
     var bookCount = db.prepare('select count(*) from books').get()['count(*)']
     if (!bookCount) {
@@ -414,7 +476,6 @@ app.get('/api/initBooks', (req, res) => {
     res.send(`Initialized books: ${JSON.stringify(bookCount)}`)
 })
 
-// app.use(handler)
 app.use(express.static(path.join(__dirname, '..', 'svelte', 'public')))
 
 app.listen(port, () => {

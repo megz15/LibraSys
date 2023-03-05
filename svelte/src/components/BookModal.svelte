@@ -41,11 +41,12 @@
         })
     }
 
-    function openReturnBookModal(d) {
+    function openReturnBookModal(users, bID) {
         new UsersListModal({
             target: document.body,
             props: {
-                users: d
+                users: users,
+                bID: bID
             },
         })
     }
@@ -124,7 +125,7 @@
                                 'Content-Type': 'application/json'
                             }}) .then(res => res.json())
                                 .then(res => {
-                                    openReturnBookModal(res['users'])
+                                    openReturnBookModal(res['users'], book.bID)
                                 })
                         }}>
                             <Label>Return Book</Label>
