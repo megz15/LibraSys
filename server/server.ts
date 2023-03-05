@@ -256,8 +256,9 @@ app.post('/api/checkoutBook', verifyJWTi, (req, res)=>{
     } else res.json({message: 'No copies available'})
 })
 
-app.get('/api/getUsersWithBooks', verifyJWTi, (req, res)=>{
-    const users:UserType[] = db.prepare(`select * from users where booksBorrowed not like '[]';`).all()
+app.post('/api/getUsersWithBook', verifyJWTi, (req, res)=>{
+    const stmt = db.prepare(`select * from users where booksBorrowed like '%{"bID":"'|| ? ||'",%';`)
+    const users:UserType[] = stmt.all(req.body.bID)
     res.json({users:users})
 })
 

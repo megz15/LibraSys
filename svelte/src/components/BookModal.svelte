@@ -33,11 +33,22 @@
     });
 
     import AdminUpdateEntry from './AdminUpdateEntry.svelte';
+    import UsersListModal from './UsersListModal.svelte';
+    
     function openUpdateBookModal(d) {
         new AdminUpdateEntry({
             target: document.body,
             props: {
                 book: d
+            },
+        })
+    }
+
+    function openReturnBookModal(d) {
+        new UsersListModal({
+            target: document.body,
+            props: {
+                users: d
             },
         })
     }
@@ -98,6 +109,19 @@
                                 })
                         }}>
                             <Label>Delete Book</Label>
+                        </svelte:component>
+
+                        <svelte:component this={Button} on:click={()=>{
+                            fetch('/api/getUsersWithBook', {method: 'POST', body: JSON.stringify({
+                                bID: book.bID
+                            }), headers: {
+                                'Content-Type': 'application/json'
+                            }}) .then(res => res.json())
+                                .then(res => {
+                                    openReturnBookModal(res['users'])
+                                })
+                        }}>
+                            <Label>Return Book</Label>
                         </svelte:component>
                     
                         {/if}
