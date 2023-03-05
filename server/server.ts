@@ -231,9 +231,9 @@ app.post('/api/checkoutBook', verifyJWTi, (req, res)=>{
             booksBorrowed.push({
                 timeWhenCheckedOut: req.body.time,
                 bID: book.bID,
-                bName: book.bName,
-                author: book.author,
-                genre: book.genre
+                // bName: book.bName,
+                // author: book.author,
+                // genre: book.genre
             })
 
             let userHavingBorrowedBooks = user
@@ -254,6 +254,19 @@ app.post('/api/checkoutBook', verifyJWTi, (req, res)=>{
         } else res.json({message: 'Cannot checkout more than 3 books'})
 
     } else res.json({message: 'No copies available'})
+})
+
+app.post('/api/rebuildCache', verifyJWTi, (req, res)=>{
+    if (!req.data.isAdmin) res.sendStatus(403)
+    
+    let searchedBook:Book = req.body.searchTerm
+
+    try {
+        redisClient.del(`search:${searchedBook}`)
+        res.json({message: `Rebuilt cache for ${searchedBook}`})
+    } catch (e) {
+        res.json({message: `Could not rebuild cache for ${searchedBook}: ${e}`})
+    }
 })
 
 app.post('/api/getUsersWithBook', verifyJWTi, (req, res)=>{

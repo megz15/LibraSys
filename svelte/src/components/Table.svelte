@@ -1,5 +1,6 @@
 <script>
 
+    export let searchTerm
     export let data
 
     if (!data.length) data = [{Error:'No records returned'}]
@@ -66,14 +67,12 @@
     }
 
     import BookModal from './BookModal.svelte';
-    let isBookModalOpen = false
-    let modal
 
     function openUserBookModal(d) {
-        isBookModalOpen = true
-        modal = new BookModal({
+        new BookModal({
             target: document.body,
             props: {
+                searchTerm: searchTerm,
                 book: d
             },
         })

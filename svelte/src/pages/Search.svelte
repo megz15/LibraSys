@@ -16,5 +16,5 @@
 
     <button on:click={()=>location.href=`/search?book=${searchedBook}`}>Search</button>
 
-    <Table data={data}/>
+    <Table data={data} searchTerm={searchedBook}/>
 </main>

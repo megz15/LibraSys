@@ -1,4 +1,5 @@
 <script>
+    export let searchTerm
     export let book
 
     let open = true
@@ -13,11 +14,7 @@
     let Button
     let Label
 
-    // let getUserFromCookie
-
     onMount(async () => {
-        
-        // getUserFromCookie = (await import('../scripts/ClientJWT')).getUserFromCookie
 
         let module
         
@@ -80,7 +77,16 @@
                             }}) .then(res => res.json())
                                 .then(res => {
                                     if (res['message'] == 'Book checked out') {
-                                        location.reload()
+                                        fetch('/api/rebuildCache', {method: 'POST', body:
+                                            JSON.stringify({
+                                                searchTerm: searchTerm
+                                            }), headers: {
+                                                'Content-Type': 'application/json'
+                                        }}) .then(res => res.json())
+                                            .then(res => {
+                                                console.log(res)
+                                                location.reload()
+                                            })
                                     }
                                 })
                         }}>

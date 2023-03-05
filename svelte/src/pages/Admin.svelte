@@ -8,6 +8,6 @@
     <h1>Admin panel</h1>
     <!-- <button>Create new entry</button><br> -->
 
-    <Table data={data}/>
+    <Table data={data} searchTerm=''/>
     <AdminCreateEntry />
 </main>

@@ -14,18 +14,16 @@ export type UserType = {
     isPenalized: number,
 }
 
-type base_book = {
+export type Book = {
     bID: string,
     bName: string,
     genre: string,
     author: string,
-}
-
-export interface Book extends base_book {
     copyCount: number,
     borrowCount: number,
 }
 
-export interface CheckoutBook extends base_book {
+export type CheckoutBook = {
     timeWhenCheckedOut: number
+    bID: string,
 }
