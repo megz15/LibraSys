@@ -261,13 +261,6 @@ app.get('/api/getUsersWithBooks', verifyJWTi, (req, res)=>{
     res.json({users:users})
 })
 
-// app.get('/admin', verifyJWTi, (req, res)=>{
-//     const profile:UserType = req.data
-//     if (!profile.isAdmin) res.sendStatus(403)
-//     else res.send(`Welcome, admin ${JSON.stringify(profile)}!`)
-//     // res.send(profile)
-// })
-
 app.get('/admin/users', verifyJWTi, (req, res) => {
     if (!req.data.isAdmin) res.sendStatus(403)
 
@@ -320,6 +313,33 @@ app.post('/api/createBook', verifyJWTi, (req, res)=>{
             res.json({message: `Book created with code ${book.bID}`})
         } catch (e) {
             res.json({message: `Book couldn't be created: ${e}`})
+        }
+    }
+})
+
+app.post('/api/updateBook', verifyJWTi, (req, res)=>{
+    if (!req.data.isAdmin) res.sendStatus(403)
+
+    else {
+        try {
+            let book:Book = req.body.updatedBook
+            let originalBookID:string = req.body.originalBookID
+            let stmt = db.prepare(`
+                update books set
+                    bID = ?,
+                    bName = ?,
+                    genre = ?,
+                    author = ?,
+                    copyCount = ?
+                where bID = ?
+            ;`)
+            stmt.run(
+                book.bID, book.bName, book.genre, book.author, book.copyCount,
+                originalBookID
+            )
+            res.json({message: `Book ${originalBookID} updated to: ${JSON.stringify(book)}`})
+        } catch (e) {
+            res.json({message: `Book couldn't be updated: ${e}`})
         }
     }
 })

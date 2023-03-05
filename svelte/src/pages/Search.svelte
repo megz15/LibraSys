@@ -10,7 +10,6 @@
     <h1>LibraSys</h1>
 
     <input
-        type="search"
         placeholder="Search..."
         bind:value={searchedBook}
     />

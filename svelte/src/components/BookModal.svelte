@@ -32,6 +32,16 @@
         Label = module.Label
     });
 
+    import AdminUpdateEntry from './AdminUpdateEntry.svelte';
+    function openUpdateBookModal(d) {
+        new AdminUpdateEntry({
+            target: document.body,
+            props: {
+                book: d
+            },
+        })
+    }
+
 </script>
 
 <main>
@@ -67,7 +77,8 @@
                         </svelte:component>
                     {:else if location.pathname == '/admin/books'}
                         <svelte:component this={Button} on:click={()=>{
-                            location.href=`/admin/books/${book['bID']}`
+                            // location.href=`/admin/books/${book['bID']}`
+                            openUpdateBookModal(book)
                         }}>
                             <Label>Update Book</Label>
                         </svelte:component>
