@@ -13,6 +13,7 @@ const app = new App({
     component: (window as any as hydratedWindow).__COMP__ || "Index",
     data: (window as any as hydratedWindow).__DATA__,
     isLoggedIn: (window as any as hydratedWindow).__ISLOGGEDIN__
+
     // Instead of rendering the component with the data
     // I'm sending the data with the HTML response
     // and then initializing the component with the data client-side

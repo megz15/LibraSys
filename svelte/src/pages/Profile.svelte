@@ -5,6 +5,10 @@
     
 </script>
 
+Admin Panel:
+    <button on:click={() => location.href = '/admin/users'}>Manage User</button>
+    <button on:click={() => location.href = '/admin/books'}>Manage Books</button>
+
 <h1>{#if data.isAdmin}Welcome{:else}Hello{/if}, {data.fName}!</h1><br>
 
 <div class="profile-columns">

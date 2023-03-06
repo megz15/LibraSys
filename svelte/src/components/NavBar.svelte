@@ -21,9 +21,9 @@
             <button id="account-button" on:click={() => location.href = '/profile'}>
                 <span>Your Profile</span>
             </button>
-            <button id="account-button" on:click={() => location.href = '/admin'}>
+            <!-- <button id="account-button" on:click={() => location.href = '/admin'}>
                 <span>Admin Panel</span>
-            </button>
+            </button> -->
         {/if}
     </div>
 </div>

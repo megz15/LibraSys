@@ -93,26 +93,46 @@ app.use(logRequests)
 declare global {
     namespace Express {
         interface Request {
-            data: UserType
+            data: UserType,
+            isLoggedIn: boolean,
+            isAdmin: boolean
         }
     }
 }
 
+// Define middleware to check if user is logged in
+// const isUserLoggedInisUserLoggedIn = (req:Request, res:Response, next:NextFunction) => {
+//     const token = req.cookies.jwt
+
+//     if (token) {
+//         jwt.verify(token, process.env.JWT_SECRET!, (err:any, user:any)=>{
+//             if (!err) req.isLoggedIn = true
+//             else req.isLoggedIn = false
+//         })
+//     } else req.isLoggedIn = false
+//     next()
+// }
+// app.use(isUserLoggedInisUserLoggedIn)
+
 // Define middleware to verify JWT token
-export const verifyJWTi = (req:Request, res:Response, next:NextFunction) => {
+const verifyJWTi = (req:Request, res:Response, next:NextFunction) => {
     const token = req.cookies.jwt
 
     if (token) {
         jwt.verify(token, process.env.JWT_SECRET!, (err:any, user:any)=>{
-            if (err) return res.sendStatus(403)
-            req.data = user.user
-            // res.cookie('jwt',jwt.sign({
-            //     user: req.data
-            // }, process.env.JWT_SECRET!, {expiresIn: '1d'}))
-            next()
+            // if (err) return res.sendStatus(403)
+            if (!err) {
+                req.data = user.user
+                req.isLoggedIn = true
+            } else req.isLoggedIn = false
         })
-    } else res.sendStatus(401)
+    } else {
+        // res.sendStatus(401)
+        req.isLoggedIn = false
+    }
+    next()
 }
+app.use(verifyJWTi)
 
 // Routes
 
@@ -174,7 +194,7 @@ app.get('/search', async (req, res) => {
     ${data.html} 
     <script>
         window.__COMP__ = "Search";
-        window.__ISLOGGEDIN__ = ${!!req.cookies.jwt};
+        window.__ISLOGGEDIN__ = ${req.isLoggedIn};
         window.__DATA__ = ${JSON.stringify(books)};
     </script>
     </div>`))
@@ -190,7 +210,7 @@ app.get('/', (req, res) => {
     ${data.html} 
     <script>
         window.__COMP__ = "Home";
-        window.__ISLOGGEDIN__ = ${!!req.cookies.jwt};
+        window.__ISLOGGEDIN__ = ${req.isLoggedIn};
     </script>
     </div>`))
 })
@@ -202,7 +222,7 @@ app.get('/about', (req, res) => {
     ${data.html} 
     <script>
         window.__COMP__ = "About";
-        window.__ISLOGGEDIN__ = ${!!req.cookies.jwt};
+        window.__ISLOGGEDIN__ = ${req.isLoggedIn};
     </script>
     </div>`))
 })
@@ -233,7 +253,10 @@ app.get('/logout', (req, res)=>{
 
 // Profile page route
 
-app.get('/profile', verifyJWTi, (req, res) => {
+app.get('/profile', (req, res) => {
+    
+    if (!req.isLoggedIn) res.sendStatus(401)
+
     const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
     
     const data = require('../svelte/src/pages/Profile.svelte').default.render({
@@ -244,7 +267,7 @@ app.get('/profile', verifyJWTi, (req, res) => {
     ${data.html} 
     <script>
         window.__COMP__ = "Profile";
-        window.__ISLOGGEDIN__ = ${!!req.cookies.jwt};
+        window.__ISLOGGEDIN__ = ${req.isLoggedIn};
         window.__DATA__ = ${JSON.stringify(req.data)};
     </script>
     </div>`))
@@ -254,7 +277,9 @@ app.get('/profile', verifyJWTi, (req, res) => {
 
 // Admin panel to (C)RUD users
 
-app.get('/admin/users', verifyJWTi, (req, res) => {
+app.get('/admin/users', (req, res) => {
+    
+    if (!req.isLoggedIn) res.sendStatus(401)
     if (!req.data.isAdmin) res.sendStatus(403)
 
     const stmt = db.prepare(`select * from users`)
@@ -270,7 +295,7 @@ app.get('/admin/users', verifyJWTi, (req, res) => {
     ${data.html} 
     <script>
         window.__COMP__ = "Admin";
-        window.__ISLOGGEDIN__ = ${!!req.cookies.jwt};
+        window.__ISLOGGEDIN__ = ${req.isLoggedIn};
         window.__DATA__ = ${JSON.stringify(users)};
     </script>
     </div>`))
@@ -278,7 +303,9 @@ app.get('/admin/users', verifyJWTi, (req, res) => {
 
 // Admin panel to CRUD books
 
-app.get('/admin/books', verifyJWTi, (req, res) => {
+app.get('/admin/books', (req, res) => {
+
+    if (!req.isLoggedIn) res.sendStatus(401)
     if (!req.data.isAdmin) res.sendStatus(403)
 
     const stmt = db.prepare(`select * from books`)
@@ -294,7 +321,7 @@ app.get('/admin/books', verifyJWTi, (req, res) => {
     ${data.html}
     <script>
         window.__COMP__ = "Admin";
-        window.__ISLOGGEDIN__ = ${!!req.cookies.jwt};
+        window.__ISLOGGEDIN__ = ${req.isLoggedIn};
         window.__DATA__ = ${JSON.stringify(books)};
     </script>
     </div>`))
@@ -304,7 +331,10 @@ app.get('/admin/books', verifyJWTi, (req, res) => {
 
 // User book checkout
 
-app.post('/api/checkoutBook', verifyJWTi, async (req, res)=>{
+app.post('/api/checkoutBook', async (req, res)=>{
+
+    if (!req.isLoggedIn) res.sendStatus(401)
+
     let book:Book = req.body.book
     let user:UserType = req.data
 
@@ -351,7 +381,9 @@ app.post('/api/checkoutBook', verifyJWTi, async (req, res)=>{
 
 // Delete redis cache
 
-app.post('/api/rebuildCache', verifyJWTi, async (req, res)=>{
+app.post('/api/rebuildCache', async (req, res)=>{
+    
+    if (!req.isLoggedIn) res.sendStatus(401)
     if (!req.data.isAdmin) res.sendStatus(403)
     
     let searchedBook:Book = req.body.searchTerm
@@ -372,7 +404,11 @@ app.post('/api/rebuildCache', verifyJWTi, async (req, res)=>{
 
 // Get users with a particular book
 
-app.post('/api/getUsersWithBook', verifyJWTi, (req, res)=>{
+app.post('/api/getUsersWithBook', (req, res)=>{
+
+    if (!req.isLoggedIn) res.sendStatus(401)
+    if (!req.data.isAdmin) res.sendStatus(403)
+
     const stmt = db.prepare(`select * from users where booksBorrowed like '%"bID":"'|| ? ||'"%';`)
     const users:UserType[] = stmt.all(req.body.bID)
     res.json({users:users})
@@ -380,7 +416,11 @@ app.post('/api/getUsersWithBook', verifyJWTi, (req, res)=>{
 
 // Update user after returning book
 
-app.post('/api/updateUserAfterBookReturn', verifyJWTi, (req, res)=>{
+app.post('/api/updateUserAfterBookReturn', (req, res)=>{
+
+    if (!req.isLoggedIn) res.sendStatus(401)
+    if (!req.data.isAdmin) res.sendStatus(403)
+
     const uID = req.body.uID
     const bID = req.body.bID
 
@@ -404,7 +444,11 @@ app.post('/api/updateUserAfterBookReturn', verifyJWTi, (req, res)=>{
 
 // Decrement borrow count after returning book
 
-app.post('/api/returnBook', verifyJWTi, (req, res)=>{
+app.post('/api/returnBook', (req, res)=>{
+
+    if (!req.isLoggedIn) res.sendStatus(401)
+    if (!req.data.isAdmin) res.sendStatus(403)
+
     const bID = req.body.bID
 
     try {
@@ -418,7 +462,9 @@ app.post('/api/returnBook', verifyJWTi, (req, res)=>{
 
 // Create new book entry
 
-app.post('/api/createBook', verifyJWTi, (req, res)=>{
+app.post('/api/createBook', (req, res)=>{
+
+    if (!req.isLoggedIn) res.sendStatus(401)
     if (!req.data.isAdmin) res.sendStatus(403)
 
     else {
@@ -435,7 +481,9 @@ app.post('/api/createBook', verifyJWTi, (req, res)=>{
 // Update existing book entry
 // and the users having that book
 
-app.post('/api/updateBook', verifyJWTi, (req, res)=>{
+app.post('/api/updateBook', (req, res)=>{
+    
+    if (!req.isLoggedIn) res.sendStatus(401)
     if (!req.data.isAdmin) res.sendStatus(403)
 
     else {
@@ -485,7 +533,9 @@ app.post('/api/updateBook', verifyJWTi, (req, res)=>{
 
 // Update user
 
-app.post('/api/updateUser', verifyJWTi, (req, res)=>{
+app.post('/api/updateUser', (req, res)=>{
+    
+    if (!req.isLoggedIn) res.sendStatus(401)
     if (!req.data.isAdmin) res.sendStatus(403)
 
     else {
@@ -517,7 +567,9 @@ app.post('/api/updateUser', verifyJWTi, (req, res)=>{
 
 // Delete book entry
 
-app.post('/api/deleteBook', verifyJWTi, (req, res)=>{
+app.post('/api/deleteBook', (req, res)=>{
+    
+    if (!req.isLoggedIn) res.sendStatus(401)
     if (!req.data.isAdmin) res.sendStatus(403)
 
     else {
@@ -533,7 +585,9 @@ app.post('/api/deleteBook', verifyJWTi, (req, res)=>{
 
 // Delete user entry
 
-app.post('/api/deleteUser', verifyJWTi, (req, res)=>{
+app.post('/api/deleteUser', (req, res)=>{
+    
+    if (!req.isLoggedIn) res.sendStatus(401)
     if (!req.data.isAdmin) res.sendStatus(403)
 
     else {
