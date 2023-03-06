@@ -23,9 +23,9 @@ a:hover {
 
 body {
     margin: 0 auto;
-    display: flex;
-    align-items: center;
-    height: 100vh;
+    /* display: flex;
+    align-items: center; */
+    /* height: 100vh; */
     text-align: center;
     background-image: url(../static/bg.jpg);
     background-size: cover;
@@ -36,10 +36,10 @@ h1 {
     line-height: 1.1;
 }
 
-#app {
+/* #app {
     margin: 0 auto;
     text-align: center;
-}
+} */
 
 input, button {
     border-radius: 8px;
@@ -53,10 +53,10 @@ input, button {
     transition: border-color 0.25s;
 }
 input:hover, button:hover {
-    border-color: #646cff;
+    border-color: #eba84a;
 }
 button:active {
-    background-color: #535bf2;
+    background-color: #B67D2C;
 }  
 
 #google {

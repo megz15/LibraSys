@@ -63,33 +63,51 @@
             <Actions>
                 {#if Button}
                     {#if location.pathname == '/search'}
-                        <svelte:component this={Button} on:click={()=>{
-                            fetch('/api/checkoutBook', {method: 'POST', body:
-                                JSON.stringify({
-                                    // user: getUserFromCookie(document.cookie),
-                                    book: book,
-                                    time: Date.now()
-                                }
-                            ), headers: {
-                                'Content-Type': 'application/json'
-                            }}) .then(res => res.json())
-                                .then(res => {
-                                    if (res['message'] == 'Book checked out') {
-                                        fetch('/api/rebuildCache', {method: 'POST', body:
-                                            JSON.stringify({
-                                                searchTerm: searchTerm
-                                            }), headers: {
-                                                'Content-Type': 'application/json'
-                                        }}) .then(res => res.json())
-                                            .then(res => {
-                                                console.log(res)
-                                                location.reload()
-                                            })
+
+                        {#if book.borrowCount == book.copyCount}
+                            <svelte:component this={Button} on:click={()=>{
+                                fetch('/api/subscribe', {method: 'POST', body:
+                                    JSON.stringify({
+                                        book: book
                                     }
-                                })
-                        }}>
-                            <Label>Checkout Book</Label>
-                        </svelte:component>
+                                ), headers: {
+                                    'Content-Type': 'application/json'
+                                }}) .then(res => res.json())
+                                    .then(res => {
+                                        console.log(res)
+                                    })
+                            }}>
+                                <Label>Subscribe</Label>
+                            </svelte:component>
+                        {:else}
+                            <svelte:component this={Button} on:click={()=>{
+                                fetch('/api/checkoutBook', {method: 'POST', body:
+                                    JSON.stringify({
+                                        // user: getUserFromCookie(document.cookie),
+                                        book: book,
+                                        time: Date.now()
+                                    }
+                                ), headers: {
+                                    'Content-Type': 'application/json'
+                                }}) .then(res => res.json())
+                                    .then(res => {
+                                        if (res['message'] == 'Book checked out') {
+                                            fetch('/api/rebuildCache', {method: 'POST', body:
+                                                JSON.stringify({
+                                                    searchTerm: searchTerm
+                                                }), headers: {
+                                                    'Content-Type': 'application/json'
+                                            }}) .then(res => res.json())
+                                                .then(res => {
+                                                    console.log(res)
+                                                    location.reload()
+                                                })
+                                        }
+                                    })
+                            }}>
+                                <Label>Checkout Book</Label>
+                            </svelte:component>
+                        {/if}
                     {:else if location.pathname == '/admin/books'}
                         
                         <svelte:component this={Button} on:click={()=>{

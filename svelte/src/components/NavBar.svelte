@@ -38,7 +38,7 @@
         justify-content: space-between;
         align-items: center;
         backdrop-filter: blur(5px) brightness(0.4);
-        position: fixed;
+        /* position: absolute; */
         top: 0;
         left: 0;
         margin: 0 auto;
