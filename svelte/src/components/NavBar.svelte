@@ -4,7 +4,15 @@
 </script>
 
 <div id="navbar">
-    <div id="logo"><h4>LibraSys</h4></div>
+    
+    <div id="logo">
+        <img alt="Logo"
+            src="../../static/logo.png"
+            style="width:32px;height:32px;"
+        />
+        <h4>LibraSys</h4>
+    </div>
+    
     <div id="route-group">
         <a href="/">Home</a>
         <a href="/search">Search</a>
@@ -15,10 +23,16 @@
         <!-- <a href="/profile">Profile</a> -->
         <a href="/about">About</a>
     </div>
+    
     <div id="account-stuff">
         {#if !isLoggedIn}
             <button id="account-button" on:click={() => location.href = '/login'}>
-                <span>Login With&nbsp;</span><div id="google"/>
+                Login With&nbsp;<img
+                    src="../../static/google.png"
+                    alt="Google"
+                    style="width:24px;height:24px;"
+                />
+                <!-- <div id="google"/> -->
             </button>
         {:else}
             <button id="account-button" on:click={() => location.href = '/profile'}>
@@ -29,6 +43,7 @@
             </button> -->
         {/if}
     </div>
+
 </div>
 
 <style>
@@ -38,13 +53,17 @@
         justify-content: space-between;
         align-items: center;
         backdrop-filter: blur(5px) brightness(0.4);
-        /* position: absolute; */
+        position: fixed;
         top: 0;
         left: 0;
         margin: 0 auto;
+        z-index: 1;
     }
 
     #logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
         padding-left: 5%;
     }
 

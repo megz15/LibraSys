@@ -29,11 +29,12 @@ body {
     text-align: center;
     background-image: url(../static/bg.jpg);
     background-size: cover;
+    background-attachment: fixed;
 }
 
 h1 {
     font-size: 3.2em;
-    line-height: 1.1;
+    /* line-height: 1.1; */
 }
 
 /* #app {
@@ -52,17 +53,19 @@ input, button {
     cursor: pointer;
     transition: border-color 0.25s;
 }
+
 input:hover, button:hover {
     border-color: #eba84a;
 }
+
 button:active {
     background-color: #B67D2C;
-}  
+}
 
-#google {
-    background-image: url(../static/icons8-google-48.png);
+/* #google {
+    background-image: url(../static/google.png);
     background-repeat: no-repeat;
     background-size: 100% auto;
     width: 24px;
     height: 24px;
-}
+} */

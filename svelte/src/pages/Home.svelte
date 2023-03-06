@@ -2,7 +2,8 @@
     let searchedBook
 </script>
 
-<main>
+<div class="hero">
+    <img src="../../static/logo.png" alt="LibraSys Logo">
     <h1>LibraSys</h1>
     <h3>• Where reading meets technology •</h3>
     
@@ -22,7 +23,11 @@
             loop autoplay
         />
     </div>
-</main>
+</div>
+
+{#each Array(100) as _}
+lorem ipsum lorem ipsum lorem ipsum <br>
+{/each}
 
 <style>
     #down-arrow {
@@ -31,7 +36,7 @@
         transform: rotate(90deg);
     }
 
-    main {
+    .hero {
         height: 100vh;
         display: flex;
         flex-direction: column;
