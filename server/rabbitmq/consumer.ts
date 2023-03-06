@@ -1,26 +1,16 @@
 import amqp from 'amqplib';
-import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
-dotenv.config({path:'server/.env'});
+import { sendMail } from '../email';
 
 (async () => {
     const conn = await amqp.connect('amqp://localhost');
     const channel = await conn.createChannel();
 
-    channel.consume('emailReminder', (msg)=>{
+    await channel.consume('emailReminder', async (msg)=>{
         if (msg !== null) {
 
             const a = JSON.parse(msg.content.toString())
 
-            const transport = nodemailer.createTransport({
-                service: 'hotmail',
-                auth: {
-                    user: 'libra.sys@hotmail.com',
-                    pass: process.env.PWD,
-                },
-            });
-            
-            transport.sendMail({
+            await sendMail({
                 from: 'libra.sys@hotmail.com',
                 to: a.email,
                 subject: a.subject,

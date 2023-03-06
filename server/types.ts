@@ -28,8 +28,9 @@ export type CheckoutBook = {
     bID: string,
 }
 
-export type emailReminder = {
-    message: string,
-    timeToSend: number,
-    uID: number
+export type MailType = {
+    from: string,
+    to: string,
+    subject: string,
+    text: string
 }

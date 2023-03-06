@@ -345,7 +345,7 @@ app.post('/api/scheduleBook', async (req, res)=>{
 
     sendMessage(
         `Your need to return book ${bID} checked out on ${timeWhenCheckedOut}.\nCustom message: ${message}`,
-        delay*1000, // seconds
+        delay*1000, // seconds, change to days later
         req.data.email,
     )
 })
