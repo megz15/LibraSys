@@ -11,6 +11,7 @@ require('svelte/register')
 import path from 'path'
 import fs from 'fs'
 import './auth.ts'
+import { sendMessage } from './rabbitmq/producer'
 
 // Initializing redis client
 export const redisClient = createClient({url:'redis://localhost:6379'});
@@ -100,20 +101,6 @@ declare global {
     }
 }
 
-// Define middleware to check if user is logged in
-// const isUserLoggedInisUserLoggedIn = (req:Request, res:Response, next:NextFunction) => {
-//     const token = req.cookies.jwt
-
-//     if (token) {
-//         jwt.verify(token, process.env.JWT_SECRET!, (err:any, user:any)=>{
-//             if (!err) req.isLoggedIn = true
-//             else req.isLoggedIn = false
-//         })
-//     } else req.isLoggedIn = false
-//     next()
-// }
-// app.use(isUserLoggedInisUserLoggedIn)
-
 // Define middleware to verify JWT token
 const verifyJWTi = (req:Request, res:Response, next:NextFunction) => {
     const token = req.cookies.jwt
@@ -138,9 +125,17 @@ app.use(verifyJWTi)
 
 // Index route
 
-// app.get('/', (req, res)=>{
-//     res.send('Index page')
-// })
+app.get('/', (req, res) => {
+    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
+    const data = require('../svelte/src/pages/Home.svelte').default.render()
+    res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
+    ${data.html} 
+    <script>
+        window.__COMP__ = "Home";
+        window.__ISLOGGEDIN__ = ${req.isLoggedIn};
+    </script>
+    </div>`))
+})
 
 // Book search route
 
@@ -203,18 +198,6 @@ app.get('/search', async (req, res) => {
 
 // About route
 
-app.get('/', (req, res) => {
-    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
-    const data = require('../svelte/src/pages/Home.svelte').default.render()
-    res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
-    ${data.html} 
-    <script>
-        window.__COMP__ = "Home";
-        window.__ISLOGGEDIN__ = ${req.isLoggedIn};
-    </script>
-    </div>`))
-})
-
 app.get('/about', (req, res) => {
     const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
     const data = require('../svelte/src/pages/About.svelte').default.render()
@@ -269,6 +252,26 @@ app.get('/profile', (req, res) => {
         window.__COMP__ = "Profile";
         window.__ISLOGGEDIN__ = ${req.isLoggedIn};
         window.__DATA__ = ${JSON.stringify(req.data)};
+    </script>
+    </div>`))
+})
+
+// User schedule book
+
+app.get('/schedule', (req, res) => {
+
+    if (!req.isLoggedIn) res.sendStatus(401)
+
+    const indexFile = fs.readFileSync(path.resolve(__dirname, '..', 'svelte', 'public', 'index.html'))
+    const data = require('../svelte/src/pages/Schedule.svelte').default.render({
+        data: req.data.booksBorrowed
+    })
+    res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
+    ${data.html} 
+    <script>
+        window.__COMP__ = "Schedule";
+        window.__ISLOGGEDIN__ = ${req.isLoggedIn};
+        window.__DATA__ = ${req.data.booksBorrowed};
     </script>
     </div>`))
 })
@@ -329,6 +332,24 @@ app.get('/admin/books', (req, res) => {
 
 // API routes
 
+// User schedule book
+
+app.post('/api/scheduleBook', async (req, res)=>{
+
+    if (!req.isLoggedIn) res.sendStatus(401)
+
+    let message:string = req.body.message
+    let delay:number = req.body.delay
+    let bID:number = req.body.bID
+    let timeWhenCheckedOut:number = req.body.timeWhenCheckedOut
+
+    sendMessage(
+        `Your need to return book ${bID} checked out on ${timeWhenCheckedOut}.\nCustom message: ${message}`,
+        delay*1000, // seconds
+        req.data.email,
+    )
+})
+
 // User book checkout
 
 app.post('/api/checkoutBook', async (req, res)=>{
@@ -384,7 +405,7 @@ app.post('/api/checkoutBook', async (req, res)=>{
 app.post('/api/rebuildCache', async (req, res)=>{
     
     if (!req.isLoggedIn) res.sendStatus(401)
-    if (!req.data.isAdmin) res.sendStatus(403)
+    // if (!req.data.isAdmin) res.sendStatus(403)
     
     let searchedBook:Book = req.body.searchTerm
 

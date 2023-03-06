@@ -27,3 +27,9 @@ export type CheckoutBook = {
     timeWhenCheckedOut: number
     bID: string,
 }
+
+export type emailReminder = {
+    message: string,
+    timeToSend: number,
+    uID: number
+}

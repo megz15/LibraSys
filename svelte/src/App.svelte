@@ -8,7 +8,8 @@
         'About': About,
         'Profile': Profile,
         'Admin': Admin,
-        'Home': Home
+        'Home': Home,
+        'Schedule': Schedule
     }
     
     import Home from "./pages/Home.svelte";
@@ -17,6 +18,7 @@
     import Profile from "./pages/Profile.svelte";
     import Admin from "./pages/Admin.svelte";
     import NavBar from "./components/NavBar.svelte";
+    import Schedule from "./pages/Schedule.svelte";
 </script>
 
 <!-- Uisng conditional rendering according to the route -->

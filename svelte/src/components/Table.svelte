@@ -68,6 +68,7 @@
 
     import BookModal from './BookModal.svelte';
     import UserModal from './UserModal.svelte';
+    import UserBookScheduleModal from './UserBookScheduleModal.svelte';
 
     function openUserBookModal(d) {
         new BookModal({
@@ -84,6 +85,15 @@
             target: document.body,
             props: {
                 user: d
+            },
+        })
+    }
+
+    function openUserBookScheduleModal(d) {
+        new UserBookScheduleModal({
+            target: document.body,
+            props: {
+                book: d
             },
         })
     }
@@ -106,6 +116,9 @@
                 <svelte:component this={Row} on:click={
                     ()=>{
                         switch(location.pathname) {
+                            case '/schedule':
+                                openUserBookScheduleModal(d)
+                                break
                             case '/admin/users':
                                 openUserUserModal(d)
                                 break

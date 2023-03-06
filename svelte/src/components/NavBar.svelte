@@ -8,6 +8,9 @@
     <div id="route-group">
         <a href="/">Home</a>
         <a href="/search">Search</a>
+        {#if isLoggedIn}
+            <a href="/schedule">Schedule</a>
+        {/if}
         <!-- <a href="/login">Login</a> -->
         <!-- <a href="/profile">Profile</a> -->
         <a href="/about">About</a>

@@ -5,9 +5,11 @@
     
 </script>
 
+{#if data.isAdmin}
 Admin Panel:
     <button on:click={() => location.href = '/admin/users'}>Manage User</button>
     <button on:click={() => location.href = '/admin/books'}>Manage Books</button>
+{/if}
 
 <h1>{#if data.isAdmin}Welcome{:else}Hello{/if}, {data.fName}!</h1><br>
 
