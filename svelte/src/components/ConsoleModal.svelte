@@ -32,7 +32,7 @@
     {#if Dialog}
         <svelte:component this={Dialog} open>
             <Title>Notification</Title>
-            <Content>{JSON.stringify(data.message)}</Content>
+            <Content>{JSON.stringify(data.message).slice(1,-1)}</Content>
             <Actions>
                 {#if Button}                        
                     <Button>

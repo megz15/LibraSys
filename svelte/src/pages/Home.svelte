@@ -54,10 +54,10 @@
     text='Manage the inventory of books as an admin and digitize keeping track of books and users!'
     image='../static/feature4.png'
 />
-
-{#each Array(100) as _}
+<!-- 
+{#each Array(50) as _}
 lorem ipsum lorem ipsum lorem ipsum <br>
-{/each}
+{/each} -->
 
 <!-- <div id="features">
     <div style="display:flex;align-items:center;">

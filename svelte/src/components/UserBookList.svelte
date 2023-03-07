@@ -1,8 +1,14 @@
 <script>
     export let data
-    data.forEach(book => {
-        book.timeWhenCheckedOut = new Date(book.timeWhenCheckedOut).toLocaleString()
+
+    import { onMount } from 'svelte';
+
+    onMount(async () => {
+        data.forEach(book => {
+            book.timeWhenCheckedOut = new Date(book.timeWhenCheckedOut).toLocaleString()
+        });
     });
+
     import Table from "./Table.svelte";
 </script>
 

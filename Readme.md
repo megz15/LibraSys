@@ -2,9 +2,40 @@
 
 • Where reading meets technology •
 
+This is an online system that would be connected to a physical library in order to manage the 
+
+## Previews
+
+### Home page
+
+![Home page](https://i.imgur.com/ai57Sld.png)
+
+![User facing gif](https://i.imgur.com/dDaBIg0.gif)
+
+`Note: The dialog at the end is supposed to say days not ms :p`
+
+### Admin facing
+
+![Admin facing gif](https://i.imgur.com/ixIYjVU.gif)
+
+
 ## CRUx Dev Induction Round 3: Web Development
 
 You will build a website with a backend in Express.js, and TypeScript and a frontend in Svelte or React during this task.
+
+## Technologies used
+
+Some of the technologies used in the project are:
+
+* Svelte - Front-end framework
+* Node.js - Back-end runtime environment
+* Express.js - Web framework
+* SQLite3 - Database
+* Passport.js - For authentication with OAuth 2.0
+* Redis - In-memory data store for caching
+* RabbitMQ - For event queuing
+* Nodemailer - Email service
+* node-cron - Cron-like jobs for scheduling
 
 ## Getting Started
 
@@ -53,17 +84,24 @@ Follow the official instructions to install redis-server and rabbitmq-server on 
 
 Start the servers. Default configs are used in the project.
 
+## RabbitMQ Plugin
+
+Install the Delayed Messaging plugin for RabbitMQ.<br>
+This enables users to schedule custom email notifications for a book for a later date.
+
+    https://github.com/rabbitmq/rabbitmq-delayed-message-exchange
+
 ## Start the server
 
 Go to the root directory and run
 
     $ npm run dev
 
-Open `[localhost:3000](http://localhost:3000/)` to access the website.
+Open [localhost:3000](http://localhost:3000/) to access the website.
 
 ## Initialize some books
 
-Go to `[localhost:3000/api/init](http://localhost:3000/api/initBooks)` to add some dummy books.
+Go to [localhost:3000/api/init](http://localhost:3000/api/initBooks) to add some dummy books.
 
 # Official instructions
 
@@ -81,7 +119,7 @@ Go to `[localhost:3000/api/init](http://localhost:3000/api/initBooks)` to add so
         - [x] Users should be able to look at the books available, and the results should be paginated
     - [x] Users should be able to borrow books for a fixed period of time. At any point a user can borrow a maximum of 3 books.
     - [x] Admins should be able to mark a book as returned. This will only increase the number of books available for borrowing by 1, not by the number of copies of the book.
-2. - [x] Figure out the fastest and most secure way to use JWTs for authentication, and implement it. If you don’t have the time to implement it, at least read up on it, and we might have a discussion about this during the interview.
+2. Figure out the fastest and most secure way to use JWTs for authentication, and implement it. If you don’t have the time to implement it, at least read up on it, and we might have a discussion about this during the interview.
 3. - [x] You should be able to filter by Genre, and filter by Author. The results should, of course, be paginated.
 4. - [x] Cache search results and book information in Redis, and use LRU, and set an expiry time for cached results.
 5. - [x] Use a message broker or Event Queue like RabbitMQ or Kafka to allow users to schedule email reminders at certain dates for custom messages, for e.g. Reminders for returning a book, or reminders for completing some chapters in the book, etc.

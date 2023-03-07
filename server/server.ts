@@ -1,18 +1,18 @@
 // Dependencies
 import express, { Request, Response, NextFunction } from 'express'
-import type { UserType, Book, CheckoutBook } from './types'
 import { sendMessage } from './rabbitmq/producer'
-import cookieParser from 'cookie-parser'
 import Database from 'better-sqlite3'
-import { createClient } from 'redis'
 import * as jwt from 'jsonwebtoken'
 import passport from 'passport'
-import cron from 'node-cron'
 require('svelte/register')
+import fs from 'fs'             // There's no order here
+import './auth.ts'              // It just looks cool
 import path from 'path'
-import fs from 'fs'
-import './auth.ts'
+import cron from 'node-cron'
 import { sendMail } from './email'
+import { createClient } from 'redis'
+import cookieParser from 'cookie-parser'
+import type { UserType, Book, CheckoutBook } from './types'
 
 // Initializing redis client
 export const redisClient = createClient({url:'redis://localhost:6379'});
@@ -24,15 +24,19 @@ export const redisClient = createClient({url:'redis://localhost:6379'});
     await redisClient.configSet('maxmemory-policy', 'allkeys-lru').then(() => console.log('✅[Redis]: maxmemory-policy set to allkeys-lru!'))
 })();
 
+// Create Express app
 const app:express.Application = express()
 const port:number = 3000
 
 app.use(cookieParser())
 app.use(express.json())
 
-// Db initialization
+// Database initialization
 export const db = new Database('./server/data.db', {verbose: console.log})
 db.pragma('journal_mode = WAL')
+
+// Function to check if any user with borrowed books
+// Has some book for which the issued time has been surpassed
 
 async function checkOverdueBooks() {
     console.log('Checking for overdue books')
@@ -51,32 +55,34 @@ async function checkOverdueBooks() {
                 // Change flag isPenalized to 1 if not already
                 if (!user.isPenalized) db.prepare(`update users set isPenalized = 1 where uID = ?;`).run(user.uID)
                 console.log(`Changed flag isPenalized to 1 for ${user.uName}`)
+
+                // This could be integrated with some penalty system that
+                // for example, deducts money or points from the user with each passing day
+                // or doesn't allow them to issue more books for a while
+
             } else if (timeElapsed >= oneWeek) {
                 // Send an email reminder to the user
                 await sendMail({
                     from: process.env.PROJECT_EMAIL!,
                     to: user.email,
-                    subject: `One week has passed`,
+                    subject: `Alert`,
                     text: `Hi ${user.fName}, this is a reminder that a week has passed since you issued the book ${book.bID}`
-                }) 
-                    // .then(res => {
-                    //     console.log(res)
-                    //     console.log(`sent mail to ${user.email}`)
-                    // })
-                    // .catch((e) => {
-                    //     console.log(`Couldn't send mail to ${user.email}: ${e}`)
-                    // })
+                })
                 console.log(`Sent an email reminder to ${user.uName}`)
             }
         });
     });
 }
-// checkOverdueBooks()
-cron.schedule('*/30 * * * * *', checkOverdueBooks) // runs every 30 seconds, only for testing
-// cron.schedule('*/10 * * * * *', ()=>{console.log('⚡[server]: still alive')})
+
+// Schedule (node-)cron jobs
+cron.schedule('*/30 * * * *', checkOverdueBooks) // runs every 30 minutes, only for testing
+cron.schedule('*/30 * * * * *', ()=>{console.log('⚡[server]: still alive')}) // runs every 30 seconds
 
 // Initialize `users` table
-
+// with columns for storing user ID, email, full name, username
+// a stringified array of objects denoting borrowed books
+// and flags for if it is an admin account
+// and if the user has some book for more than the alotted time
 db.exec(`create table if not exists users (
     uID text primary key unique,
     email text unique,
@@ -88,7 +94,9 @@ db.exec(`create table if not exists users (
 );`)
 
 // Initialize `books` table
-
+// with columns to store book ID, book name, genre, author
+// number of copies available
+// and number of copies borrowed by people
 db.exec(`create table if not exists books (
     bID text primary key unique,
     bName text default null,
@@ -102,7 +110,6 @@ db.exec(`create table if not exists books (
 // to store emails of users who have subsribed to receive an alert
 // when a fully checked-out book becomes available
 // (brownie point)
-
 db.exec(`create table if not exists subscribe (
     bID text primary key unique,
     emails text
@@ -127,6 +134,8 @@ const logRequests = (req:Request, res:Response, next:NextFunction) => {
 }
 app.use(logRequests)
 
+
+// Extend req interface
 declare global {
     namespace Express {
         interface Request {
@@ -186,8 +195,6 @@ app.get('/search', async (req, res) => {
 
     let books:Book[]
 
-    // Note: do error handling later in case of cache invalidation error and stuff
-
     let cachedBookResult
 
     // Checking if client is connected or not
@@ -227,6 +234,9 @@ app.get('/search', async (req, res) => {
     // So I'm sending it as window.__COMP__ for which component to render according to the route
     // and window.__DATA__ for the props
     // which will then be read client-side to "hydrate" the svelte component
+    
+    // Edit: also sending window.__ISLOGGEDIN__ to let the navbar know
+    // which button to render conditionally, login or user profile
 
     res.send(indexFile.toString().replace('<div id="app"></div>', `<div id="app">
     ${data.html} 
@@ -403,7 +413,7 @@ app.post('/api/subscribe', async (req, res)=>{
 
 })
 
-// User schedule book
+// User schedules custom notifications for a book
 
 app.post('/api/scheduleBook', async (req, res)=>{
 
@@ -414,14 +424,17 @@ app.post('/api/scheduleBook', async (req, res)=>{
     let bID:number = req.body.bID
     let timeWhenCheckedOut:number = req.body.timeWhenCheckedOut
 
-    sendMessage(
+    await sendMessage(
         `Your need to return book ${bID} checked out on ${timeWhenCheckedOut}.\nCustom message: ${message}`,
-        delay*1000, // seconds, change to days later
+        // delay*1000, // seconds, change to days later
+        delay*24*60*60*1000, // days in ms
         req.data.email,
     )
+
+    res.json({message: `Scheduled ${bID} with a delay of ${delay} days`})
 })
 
-// User book checkout
+// User checks out book
 
 app.post('/api/checkoutBook', async (req, res)=>{
 
@@ -431,6 +444,7 @@ app.post('/api/checkoutBook', async (req, res)=>{
         let book:Book = req.body.book
         let user:UserType = req.data
 
+        // Check if copies are available
         if (book.borrowCount < book.copyCount) {
 
             let booksBorrowed:CheckoutBook[] = JSON.parse(user.booksBorrowed)
@@ -452,6 +466,8 @@ app.post('/api/checkoutBook', async (req, res)=>{
                     let userHavingBorrowedBooks = user
                     userHavingBorrowedBooks.booksBorrowed = JSON.stringify(booksBorrowed)
 
+                    // Set new cookie so that the added book
+                    // gets reflected in the user profile
                     res.cookie('jwt', jwt.sign(
                         {user: userHavingBorrowedBooks},
                         process.env.JWT_SECRET!,
@@ -476,7 +492,7 @@ app.post('/api/checkoutBook', async (req, res)=>{
 
 })
 
-// Delete redis cache
+// Delete redis cache when required
 
 app.post('/api/rebuildCache', async (req, res)=>{
     
