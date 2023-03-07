@@ -28,6 +28,7 @@
 
     import AdminUpdateUser from './AdminUpdateUser.svelte';
     import ConsoleModal from './ConsoleModal.svelte';
+    import UserBooksListModal from './UserBooksListModal.svelte';
     
     function openUpdateUserModal(d) {
         new AdminUpdateUser({
@@ -43,6 +44,15 @@
             target: document.body,
             props: {
                 data: data
+            },
+        })
+    }
+
+    function openUserBooksListModal(data) {
+        new UserBooksListModal({
+            target: document.body,
+            props: {
+                user: user,
             },
         })
     }
@@ -64,6 +74,13 @@
                         openUpdateUserModal(user)
                     }}>
                         <Label>Update User</Label>
+                    </svelte:component>
+
+                    <svelte:component this={Button} on:click={()=>{
+                        openUserBooksListModal(user)
+                        // console.log(user)
+                    }}>
+                        <Label>Checked Out Books</Label>
                     </svelte:component>
                     
                     <svelte:component this={Button} on:click={()=>{

@@ -22,6 +22,7 @@
             },
         })
     }
+    
 </script>
 
 {#if pathName == '/admin/books'}

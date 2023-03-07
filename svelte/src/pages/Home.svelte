@@ -35,12 +35,4 @@ lorem ipsum lorem ipsum lorem ipsum <br>
         height: 150px;
         transform: rotate(90deg);
     }
-
-    .hero {
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
 </style>

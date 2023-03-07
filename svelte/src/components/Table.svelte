@@ -5,6 +5,12 @@
 
     if (!data.length) data = [{Error:'No records returned'}]
 
+    // data.forEach(e => {
+    //     delete e.booksBorrowed
+    // });
+
+    // const tableUserData = data.map(({booksBorrowed, ...item}) => item)
+
     import { onMount } from 'svelte';
     // import { getContext } from 'svelte'
 
@@ -101,13 +107,19 @@
 </script>
 
 <main>
-
+    <!-- stickyheader -->
     {#if DataTable}
-    <DataTable stickyHeader style="width: 100%;">
+    <DataTable style="width:100%">
         <Head>
             <Row>
                 {#each Object.keys(data[0]) as a}
-                    <Cell>{a}</Cell>
+                    {#if a!='booksBorrowed'}
+                        <!-- {#if a.toLowerCase().includes('name')}
+                            <Cell style="width: 100%;">{a}</Cell>
+                        {:else} -->
+                            <Cell>{a}</Cell>
+                        <!-- {/if} -->
+                    {/if}
                 {/each}
             </Row>
         </Head>
@@ -129,7 +141,9 @@
                     }
                 }>
                     {#each Object.keys(d) as p}
-                        <Cell>{JSON.stringify(d[p])}</Cell>
+                        {#if p!='booksBorrowed'}
+                            <Cell>{JSON.stringify(d[p])}</Cell>
+                        {/if}
                     {/each}
                 </svelte:component>
             {/each}
