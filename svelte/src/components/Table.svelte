@@ -151,7 +151,7 @@
                 }>
                     {#each Object.keys(d) as p}
                         {#if p!='booksBorrowed'}
-                            <Cell>{JSON.stringify(d[p])}</Cell>
+                            <Cell>{JSON.stringify(d[p]).replaceAll('"','')}</Cell>
                         {/if}
                     {/each}
                 </svelte:component>
