@@ -1,6 +1,7 @@
 // Dependencies
 import express, { Request, Response, NextFunction } from 'express'
 import type { UserType, Book, CheckoutBook } from './types'
+import { sendMessage } from './rabbitmq/producer'
 import cookieParser from 'cookie-parser'
 import Database from 'better-sqlite3'
 import { createClient } from 'redis'
@@ -11,7 +12,6 @@ require('svelte/register')
 import path from 'path'
 import fs from 'fs'
 import './auth.ts'
-import { sendMessage } from './rabbitmq/producer'
 
 // Initializing redis client
 export const redisClient = createClient({url:'redis://localhost:6379'});
@@ -81,10 +81,10 @@ db.exec(`create table if not exists books (
 // when a fully checked-out book becomes available
 // (brownie point)
 
-// db.exec(`create table if not exists subscribe (
-//     bID text primary key unique,
-//     emails text,
-// );`)
+db.exec(`create table if not exists subscribe (
+    bID text primary key unique,
+    emails text
+);`)
 
 export function createUser(gID:string, email:string, fName:string, uName:string, isAdmin=0) {
     db.prepare(`insert into users values(?, ?, ?, ?, '[]', ?, 0);`).run(gID, email, fName, uName, isAdmin)
@@ -355,7 +355,20 @@ app.post('/api/subscribe', async (req, res)=>{
     let book:Book = req.body.book
     let user:UserType = req.data
 
-    res.json({message: "Subscribed!"})
+    let emails = db.prepare('select emails from subscribe where bID = ?').get(book.bID)
+    if (!emails) {
+        db.prepare(`insert into subscribe values(?, ?);`).run(book.bID, JSON.stringify([user.email]))
+        res.json({message: 'Created subscription'})
+    } else {
+        emails = JSON.parse(emails.emails)
+        if (emails.includes(user.email)) {
+            res.json({message: 'User already subsribed to this book'})
+        } else {
+            emails.push(user.email)
+            db.prepare(`update subscribe set emails = ? where bID = ?;`).run(JSON.stringify(emails), book.bID)
+            res.json({message: 'Subscribed successfully'})
+        }
+    }
 })
 
 // User schedule book
