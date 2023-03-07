@@ -17,9 +17,10 @@ import { sendMail } from './email'
 // Initializing redis client
 export const redisClient = createClient({url:'redis://localhost:6379'});
 (async () => {
-    redisClient.on("error", (error) => console.error(`❌[server]: Redis Client Error: ${error}`));
-    await redisClient.connect();
-    console.log('✅[server]: Redis Client connected!')
+    redisClient.on("error", (error) => console.error(`❌[Redis]: Client Error: ${error}`));
+    await redisClient.connect().then(() => console.log('✅[Redis]: Client connected!'))
+    await redisClient.configSet('maxmemory', '500mb').then(() => console.log('✅[Redis]: maxmemory set to 500mb!'))
+    await redisClient.configSet('maxmemory-policy', 'allkeys-lru').then(() => console.log('✅[Redis]: maxmemory-policy set to allkeys-lru!'))
 })();
 
 const app:express.Application = express()
