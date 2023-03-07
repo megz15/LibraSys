@@ -3,15 +3,15 @@
     
     import Table from "../components/Table.svelte";
 
-    // import { onMount } from "svelte";
+    import { onMount } from "svelte";
 
-    // let pathname
+    let pathname
 
-    // onMount(async() => {
-    //     if (typeof location !== 'undefined') {
-    //         pathname = location.pathname;
-    //     }
-    // })
+    onMount(async() => {
+        if (typeof location !== 'undefined') {
+            pathname = location.pathname;
+        }
+    })
 
     import AdminModifyBookModal from "../components/AdminModifyBookModal.svelte";
 
@@ -34,14 +34,14 @@
             <button on:click={() => location.href = '/admin/books'}>Manage Books</button>
     </div>
 
-        {#if location.pathname == '/admin/users'}
-            <h1>Users</h1>
-        {:else}
-            <div id="book-stuff-row">
-                <h1>Books</h1>
-                <button on:click={openCreateBookModal}>Create</button>
-            </div>
-        {/if}
+    {#if pathname == '/admin/users'}
+        <h1>Users</h1>
+    {:else}
+        <div id="book-stuff-row">
+            <h1>Books</h1>
+            <button on:click={openCreateBookModal}>Create</button>
+        </div>
+    {/if}
 
     <Table data={data} searchTerm=''/>
 </div>

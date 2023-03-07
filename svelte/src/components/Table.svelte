@@ -5,6 +5,15 @@
 
     if (!data.length) data = [{Error:'No records returned'}]
 
+    let column = Object.keys(data[0])
+    if (column.includes('bName')) {
+        column = [ "Book Code", "Book Name", "Genre", "Author", "# of Copies", "# borrowed" ]
+    } else if (column.includes('uName')) {
+        column = [ "User ID", "Email", "Name", "Username", "booksBorrowed", "isAdmin", "isPenalized" ]
+    } else if (column.includes('timeWhenCheckedOut')) {
+        column = [ "Time When Checked Out", "Book Code" ]
+    }
+
     // data.forEach(e => {
     //     delete e.booksBorrowed
     // });
@@ -112,7 +121,7 @@
     <DataTable style="width:100%">
         <Head>
             <Row>
-                {#each Object.keys(data[0]) as a}
+                {#each column as a}
                     {#if a!='booksBorrowed'}
                         <!-- {#if a.toLowerCase().includes('name')}
                             <Cell style="width: 100%;">{a}</Cell>
