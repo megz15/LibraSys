@@ -27,14 +27,15 @@
         Label = module.Label
     });
 
-    import AdminUpdateBook from './AdminUpdateBook.svelte';
+    import AdminModifyBookModal from './AdminModifyBookModal.svelte';
     import ConsoleModal from './ConsoleModal.svelte';
     import UsersListModal from './UsersListModal.svelte';
     
     function openUpdateBookModal(d) {
-        new AdminUpdateBook({
+        new AdminModifyBookModal({
             target: document.body,
             props: {
+                type: 'Update',
                 book: d
             },
         })

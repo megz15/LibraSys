@@ -68,13 +68,15 @@
         <svelte:component this={Dialog} open>
             <Title>Books</Title>
             <Content>
-                {#each JSON.parse(user.booksBorrowed) as book}
-                    <svelte:component this={Label} on:click={
-                        ()=>returnHandler(book.uID)
-                    }>
-                        {book.bID}
-                    </svelte:component><br>
-                {/each}
+                {#if Label}
+                    {#each JSON.parse(user.booksBorrowed) as book}
+                        <svelte:component this={Label} on:click={
+                            ()=>returnHandler(book.bID)
+                        }>
+                            {book.bID}
+                        </svelte:component><br>
+                    {/each}
+                {/if}
             </Content>
             <Actions>
                 {#if Button}

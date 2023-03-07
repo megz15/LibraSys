@@ -7,6 +7,9 @@ dotenv.config({path:'server/.env'});
     const conn = await amqp.connect('amqp://localhost');
     const channel = await conn.createChannel();
 
+    // console.log('aaaaaaa')
+    // console.log(process.env.PROJECT_EMAIL)
+
     await channel.consume('emailReminder', async (msg)=>{
         if (msg !== null) {
 

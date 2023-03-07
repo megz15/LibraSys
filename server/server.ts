@@ -45,11 +45,11 @@ async function checkOverdueBooks() {
             const oneMin = 60 * 1000
             const _30sec = 30 * 1000
 
-            if (timeElapsed >= oneMin) {
+            if (timeElapsed >= twoWeeks) {
                 // Change flag isPenalized to 1 if not already
                 if (!user.isPenalized) db.prepare(`update users set isPenalized = 1 where uID = ?;`).run(user.uID)
                 console.log(`Changed flag isPenalized to 1 for ${user.uName}`)
-            } else if (timeElapsed >= _30sec) {
+            } else if (timeElapsed >= oneWeek) {
                 // Send an email reminder to the user
                 await sendMail({
                     from: process.env.PROJECT_EMAIL!,
