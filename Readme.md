@@ -37,8 +37,12 @@ Create a .env file in the server directory with the following environment variab
 
 ## Compile Svelte code
 
-Go to the svelte directory and run `npm run build -- --watch`
-This will generate the `public` directory that the server serves files from
+Go to the svelte directory and run
+
+    $ npm run build
+
+This will generate the `public` directory that the server serves files from.<br>
+Ignore the yellow warnings.
 
 ## Start redis-server and rabbitmq-server
 
@@ -51,7 +55,17 @@ Start the servers. Default configs are used in the project.
 
 ## Start the server
 
-Go to the root directory and run `npm run dev`
+Go to the root directory and run
+
+    $ npm run dev
+
+Open `[localhost:3000](http://localhost:3000/)` to access the website.
+
+## Initialize some books
+
+Go to `[localhost:3000/api/init](http://localhost:3000/api/initBooks)` to add some dummy books.
+
+# Official instructions
 
 ## Task: Build a Library website
 
