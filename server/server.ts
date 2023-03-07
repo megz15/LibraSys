@@ -16,6 +16,7 @@ import { sendMail } from './email'
 
 // Initializing redis client
 export const redisClient = createClient({url:'redis://localhost:6379'});
+
 (async () => {
     redisClient.on("error", (error) => console.error(`❌[Redis]: Client Error: ${error}`));
     await redisClient.connect().then(() => console.log('✅[Redis]: Client connected!'))
@@ -187,9 +188,16 @@ app.get('/search', async (req, res) => {
 
     // Note: do error handling later in case of cache invalidation error and stuff
 
-    const cachedBookResult = await redisClient.get(
-        `search:${searchedBook}&genre:${genre}&author:${author}`
-    );
+    let cachedBookResult
+
+    // Checking if client is connected or not
+
+    if (redisClient.isReady) {
+        cachedBookResult = await redisClient.get(
+            `search:${searchedBook}&genre:${genre}&author:${author}`
+        );
+    }
+    
     if (cachedBookResult) {
         console.log('⚡[server]: Using cached results')
         books = JSON.parse(cachedBookResult)
