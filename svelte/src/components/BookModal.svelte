@@ -28,6 +28,7 @@
     });
 
     import AdminUpdateBook from './AdminUpdateBook.svelte';
+    import ConsoleModal from './ConsoleModal.svelte';
     import UsersListModal from './UsersListModal.svelte';
     
     function openUpdateBookModal(d) {
@@ -45,6 +46,15 @@
             props: {
                 users: users,
                 bID: bID
+            },
+        })
+    }
+
+    function openConsoleModal(data) {
+        new ConsoleModal({
+            target: document.body,
+            props: {
+                data: data
             },
         })
     }
@@ -75,6 +85,7 @@
                                 }}) .then(res => res.json())
                                     .then(res => {
                                         console.log(res)
+                                        openConsoleModal(res)
                                     })
                             }}>
                                 <Label>Subscribe</Label>
@@ -91,6 +102,7 @@
                                     'Content-Type': 'application/json'
                                 }}) .then(res => res.json())
                                     .then(res => {
+                                        openConsoleModal(res)
                                         if (res['message'] == 'Book checked out') {
                                             fetch('/api/rebuildCache', {method: 'POST', body:
                                                 JSON.stringify({

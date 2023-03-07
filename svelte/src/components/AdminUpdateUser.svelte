@@ -34,6 +34,17 @@
         Label = module.Label
     });
 
+    import ConsoleModal from './ConsoleModal.svelte';
+
+    function openConsoleModal(data) {
+        new ConsoleModal({
+            target: document.body,
+            props: {
+                data: data
+            },
+        })
+    }
+
 </script>
 
 <main>
@@ -71,6 +82,7 @@
                             'Content-Type': 'application/json'
                         }}) .then(res => res.json())
                             .then(res => {
+                                openConsoleModal(res)
                                 console.log(res)
                                 if (res['message'].startsWith(`User ${user.uID} updated to: ${JSON.stringify(updatedUser)}`)){
                                     location.reload()

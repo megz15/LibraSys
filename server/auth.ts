@@ -6,7 +6,7 @@ import * as jwt from "jsonwebtoken";
 import dotenv from 'dotenv';
 dotenv.config({ path: 'server/.env' });
 
-// Setup JWT and Google options
+// Setup Google options
 const googleOptions:StrategyOptions = {
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -15,8 +15,8 @@ const googleOptions:StrategyOptions = {
 
 // Configure Google OAuth2 strategy
 passport.use(new Strategy(googleOptions,
-    function(accessToken, refreshToken, profile:any, done) {
-        let user = getUser('email', profile.emails[0].value)
+    async function(accessToken, refreshToken, profile:any, done) {
+        let user = await getUser('email', profile.emails[0].value)
 
         if (!user) { // If user doesn't exist, create new user in database
 
@@ -26,17 +26,22 @@ passport.use(new Strategy(googleOptions,
             // (id, email and username)
             // are guaranteed to be unique within the same org
 
-            createUser(
+            await createUser(
                 profile.id,
                 profile.emails[0].value,
                 profile.name.givenName,
                 profile.emails[0].value.split('@')[0] //profile.displayName
             )
-            user = getUser('email', profile.emails[0].value)
+
+            user = await getUser('email', profile.emails[0].value)
         }
         
         // Return a JWT with the user profile
-        const token = jwt.sign({user:user}, process.env.JWT_SECRET!, {expiresIn: '1d'})
+        const token = jwt.sign(
+            {user:user},
+            process.env.JWT_SECRET!,
+            {expiresIn: process.env.EXPIRYMS}
+        )
         return done(null, token)
     }
 ))

@@ -11,6 +11,17 @@
     onMount(async () => {
         pathName = location.pathname
     })
+
+    import ConsoleModal from "./ConsoleModal.svelte";
+
+    function openConsoleModal(data) {
+        new ConsoleModal({
+            target: document.body,
+            props: {
+                data: data
+            },
+        })
+    }
 </script>
 
 {#if pathName == '/admin/books'}
@@ -32,6 +43,9 @@
         }), headers: {
             'Content-Type': 'application/json'
         }}) .then(res => res.json())
-            .then(res => console.log(res))
+            .then(res => {
+                openConsoleModal(res)
+                console.log(res)
+            })
     }}>Create Book</button>
 {/if}

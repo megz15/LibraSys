@@ -1,5 +1,7 @@
 import amqp from 'amqplib';
 import { sendMail } from '../email';
+import dotenv from 'dotenv';
+dotenv.config({path:'server/.env'});
 
 (async () => {
     const conn = await amqp.connect('amqp://localhost');
@@ -11,7 +13,7 @@ import { sendMail } from '../email';
             const a = JSON.parse(msg.content.toString())
 
             await sendMail({
-                from: 'libra.sys@hotmail.com',
+                from: process.env.PROJECT_EMAIL!,
                 to: a.email,
                 subject: a.subject,
                 text: a.body

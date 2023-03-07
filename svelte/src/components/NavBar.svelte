@@ -1,6 +1,5 @@
 <script>
     export let isLoggedIn
-    console.log(isLoggedIn)
 </script>
 
 <div id="navbar">

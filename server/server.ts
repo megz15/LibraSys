@@ -12,6 +12,7 @@ require('svelte/register')
 import path from 'path'
 import fs from 'fs'
 import './auth.ts'
+import { sendMail } from './email'
 
 // Initializing redis client
 export const redisClient = createClient({url:'redis://localhost:6379'});
@@ -32,31 +33,49 @@ export const db = new Database('./server/data.db', {verbose: console.log})
 db.pragma('journal_mode = WAL')
 
 async function checkOverdueBooks() {
-    console.log('')
+    console.log('Checking for overdue books')
     const users:UserType[] = db.prepare(`select * from users where booksBorrowed not like '[]';`).all()
     users.forEach(user => {
-        JSON.parse(user.booksBorrowed).forEach((book: CheckoutBook) => {
+        JSON.parse(user.booksBorrowed).forEach(async (book: CheckoutBook) => {
             const timeElapsed = Date.now() - book.timeWhenCheckedOut
             const oneWeek  =  7*24*60*60*1000 // 1 week  in MS
             const twoWeeks = 14*24*60*60*1000 // 2 weeks in MS
-            if (timeElapsed >= oneWeek) {
+            
+            //values for testing
+            const oneMin = 60 * 1000
+            const _30sec = 30 * 1000
+
+            if (timeElapsed >= oneMin) {
+                // Change flag isPenalized to 1 if not already
+                if (!user.isPenalized) db.prepare(`update users set isPenalized = 1 where uID = ?;`).run(user.uID)
+                console.log(`Changed flag isPenalized to 1 for ${user.uName}`)
+            } else if (timeElapsed >= _30sec) {
                 // Send an email reminder to the user
-                console.log('Send an email reminder to the user')
-            } else if (timeElapsed >= twoWeeks) {
-                // Change flag isPenalized to 1
-                console.log('Change flag isPenalized to 1')
+                await sendMail({
+                    from: process.env.PROJECT_EMAIL!,
+                    to: user.email,
+                    subject: `One week has passed`,
+                    text: `Hi ${user.fName}, this is a reminder that a week has passed since you issued the book ${book.bID}`
+                })  .then(res => {
+                        console.log(res)
+                        console.log(`sent mail to ${user.email}`)
+                    })
+                    .catch((e) => {
+                        console.log(`Couldn't send mail to ${user.email}: ${e}`)
+                    })
+                console.log(`Sent an email reminder to ${user.uName}`)
             }
         });
     });
 }
-
-cron.schedule('0 0 * * *', checkOverdueBooks)
-cron.schedule('1 * * * *', ()=>{console.log('⚡[server]: still alive')})
+// checkOverdueBooks()
+cron.schedule('*/30 * * * * *', checkOverdueBooks) // runs every 30 seconds, only for testing
+// cron.schedule('*/10 * * * * *', ()=>{console.log('⚡[server]: still alive')})
 
 // Initialize `users` table
 
 db.exec(`create table if not exists users (
-    uID integer primary key unique,
+    uID text primary key unique,
     email text unique,
     fName text default null,
     uName text unique,
@@ -86,15 +105,15 @@ db.exec(`create table if not exists subscribe (
     emails text
 );`)
 
-export function createUser(gID:string, email:string, fName:string, uName:string, isAdmin=0) {
+export async function createUser(gID:string, email:string, fName:string, uName:string, isAdmin=0) {
     db.prepare(`insert into users values(?, ?, ?, ?, '[]', ?, 0);`).run(gID, email, fName, uName, isAdmin)
 }
 
-function createBook(bID:string, bName:string, genre:string, author:string, copyCount=0) {
+async function createBook(bID:string, bName:string, genre:string, author:string, copyCount=0) {
     db.prepare(`insert into books values(?, ?, ?, ?, ?, 0);`).run(bID, bName, genre, author, copyCount)
 }
 
-export function getUser(by:string, val:string):UserType[] {
+export async function getUser(by:string, val:string):Promise<UserType[]> {
     return db.prepare(`select * from users where ${by} = ?;`).get(val)
 }
 
@@ -234,7 +253,7 @@ app.get('/auth/google/callback',
     passport.authenticate('google', {failureRedirect: '/auth/failure', session:false}),
     (req, res) => {
         const token = req.user
-        res.cookie('jwt', token, {httpOnly: true})
+        res.cookie('jwt', token, {httpOnly: true, maxAge: parseInt(process.env.EXPIRYMS!)})
         res.redirect(`/profile`)
     }
 )
@@ -350,25 +369,28 @@ app.get('/admin/books', (req, res) => {
 
 app.post('/api/subscribe', async (req, res)=>{
     
-    if (!req.isLoggedIn) res.sendStatus(401)
-
-    let book:Book = req.body.book
-    let user:UserType = req.data
-
-    let emails = db.prepare('select emails from subscribe where bID = ?').get(book.bID)
-    if (!emails) {
-        db.prepare(`insert into subscribe values(?, ?);`).run(book.bID, JSON.stringify([user.email]))
-        res.json({message: 'Created subscription'})
+    if (!req.isLoggedIn) {
+        res.status(401).json({message: 'Need to login first'})
     } else {
-        emails = JSON.parse(emails.emails)
-        if (emails.includes(user.email)) {
-            res.json({message: 'User already subsribed to this book'})
+        let book:Book = req.body.book
+        let user:UserType = req.data
+
+        let emails = db.prepare('select emails from subscribe where bID = ?').get(book.bID)
+        if (!emails) {
+            db.prepare(`insert into subscribe values(?, ?);`).run(book.bID, JSON.stringify([user.email]))
+            res.json({message: 'Created subscription'})
         } else {
-            emails.push(user.email)
-            db.prepare(`update subscribe set emails = ? where bID = ?;`).run(JSON.stringify(emails), book.bID)
-            res.json({message: 'Subscribed successfully'})
+            emails = JSON.parse(emails.emails)
+            if (emails.includes(user.email)) {
+                res.json({message: 'User already subsribed to this book'})
+            } else {
+                emails.push(user.email)
+                db.prepare(`update subscribe set emails = ? where bID = ?;`).run(JSON.stringify(emails), book.bID)
+                res.json({message: 'Subscribed successfully'})
+            }
         }
     }
+
 })
 
 // User schedule book
@@ -393,50 +415,55 @@ app.post('/api/scheduleBook', async (req, res)=>{
 
 app.post('/api/checkoutBook', async (req, res)=>{
 
-    if (!req.isLoggedIn) res.sendStatus(401)
+    if (!req.isLoggedIn) {
+        res.status(401).json({message: 'Need to login first'})
+    } else {
+        let book:Book = req.body.book
+        let user:UserType = req.data
 
-    let book:Book = req.body.book
-    let user:UserType = req.data
+        if (book.borrowCount < book.copyCount) {
 
-    if (book.borrowCount < book.copyCount) {
+            let booksBorrowed:CheckoutBook[] = JSON.parse(user.booksBorrowed)
+            if (booksBorrowed.length < 3) {
 
-        let booksBorrowed:CheckoutBook[] = JSON.parse(user.booksBorrowed)
-        if (booksBorrowed.length < 3) {
+                // Check if user has already checked out the book
+                if (booksBorrowed.some(checkoutBook => checkoutBook.bID === book.bID)) {
+                    res.json({message: 'This book has already been checked out by this user'})
+                } else {
 
-            // Check if user has already checked out the book
-            if (booksBorrowed.some(checkoutBook => checkoutBook.bID === book.bID)) {
-                res.json({message: 'This book has already been checked out by this user'})
-            } else {
+                    booksBorrowed.push({
+                        timeWhenCheckedOut: req.body.time,
+                        bID: book.bID,
+                        // bName: book.bName,
+                        // author: book.author,
+                        // genre: book.genre
+                    })
 
-                booksBorrowed.push({
-                    timeWhenCheckedOut: req.body.time,
-                    bID: book.bID,
-                    // bName: book.bName,
-                    // author: book.author,
-                    // genre: book.genre
-                })
+                    let userHavingBorrowedBooks = user
+                    userHavingBorrowedBooks.booksBorrowed = JSON.stringify(booksBorrowed)
 
-                let userHavingBorrowedBooks = user
-                userHavingBorrowedBooks.booksBorrowed = JSON.stringify(booksBorrowed)
+                    res.cookie('jwt', jwt.sign(
+                        {user: userHavingBorrowedBooks},
+                        process.env.JWT_SECRET!,
+                        {expiresIn: process.env.EXPIRYMS!}
+                    ), {httpOnly: true, maxAge: parseInt(process.env.EXPIRYMS!)})
 
-                res.cookie('jwt',jwt.sign({
-                    user: userHavingBorrowedBooks
-                }, process.env.JWT_SECRET!, {expiresIn: '1d'}), {httpOnly: true})
+                    let stmt = db.prepare(`update users set booksBorrowed = ? where uID = ?;`)
+                    stmt.run(JSON.stringify(booksBorrowed), user.uID)
 
-                let stmt = db.prepare(`update users set booksBorrowed = ? where uID = ?;`)
-                stmt.run(JSON.stringify(booksBorrowed), user.uID)
+                    book['borrowCount'] += 1
+                    stmt = db.prepare(`update books set borrowCount = borrowCount + 1 where bID = ?;`)
+                    stmt.run(book.bID)
 
-                book['borrowCount'] += 1
-                stmt = db.prepare(`update books set borrowCount = borrowCount + 1 where bID = ?;`)
-                stmt.run(book.bID)
+                    res.json({message: 'Book checked out'})
 
-                res.json({message: 'Book checked out'})
+                }
 
-            }
+            } else res.json({message: 'Cannot checkout more than 3 books'})
 
-        } else res.json({message: 'Cannot checkout more than 3 books'})
+        } else res.json({message: 'No copies available'})
+    }
 
-    } else res.json({message: 'No copies available'})
 })
 
 // Delete redis cache
@@ -513,6 +540,26 @@ app.post('/api/returnBook', (req, res)=>{
 
     try {
         db.prepare(`update books set borrowCount = borrowCount - 1 where bID = ?;`).run(bID)
+
+        let emails = db.prepare('select emails from subscribe where bID = ?').get(bID)
+        if (emails) {
+            JSON.parse(emails.emails).forEach(async (email:string) => {
+                    await sendMail({
+                        from: process.env.PROJECT_EMAIL!,
+                        to: email,
+                        subject: `Book ${bID} is available for issuing`,
+                        text: `Hi ${email.split('@')[0]}, book ${bID} is now available for issuing.`
+                    })  .then(res => {
+                            console.log(res)
+                            console.log(`sent mail to ${email}`)
+                        })
+                        .catch((e) => {
+                            console.log(`Couldn't send mail to ${email}: ${e}`)
+                        })
+            });
+        }
+        db.prepare('delete from subscribe where bID = ?').run(bID)
+        console.log(`Removed subscriptions for ${bID}`)
 
         res.json({message: `Returned ${bID}`})
     } catch (e) {

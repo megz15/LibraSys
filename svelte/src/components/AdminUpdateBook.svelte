@@ -32,6 +32,17 @@
         Label = module.Label
     });
 
+    import ConsoleModal from './ConsoleModal.svelte';
+
+    function openConsoleModal(data) {
+        new ConsoleModal({
+            target: document.body,
+            props: {
+                data: data
+            },
+        })
+    }
+
 </script>
 
 <main>
@@ -56,8 +67,6 @@
                             copyCount: copyCount
                         }
 
-                        // console.log(JSON.stringify(updatedBook))
-
                         fetch('/api/updateBook', {method: 'POST', body:
                             JSON.stringify({
                                 originalBookID: book.bID,
@@ -67,6 +76,7 @@
                             'Content-Type': 'application/json'
                         }}) .then(res => res.json())
                             .then(res => {
+                                openConsoleModal(res)
                                 console.log(res)
                                 if (res['message'].startsWith(`Book ${book.bID} updated to: ${JSON.stringify(updatedBook)}`)){
                                     location.reload()

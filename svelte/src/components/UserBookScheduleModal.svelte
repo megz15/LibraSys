@@ -37,6 +37,17 @@
         Slider = module.default
     });
 
+    import ConsoleModal from './ConsoleModal.svelte';
+
+    function openConsoleModal(data) {
+        new ConsoleModal({
+            target: document.body,
+            props: {
+                data: data
+            },
+        })
+    }
+
 </script>
 
 <main>
@@ -67,7 +78,10 @@
                         }), headers: {
                             'Content-Type': 'application/json'
                         }}) .then(res => res.json())
-                            .then(res => console.log(res))
+                            .then(res => {
+                                openConsoleModal(res)
+                                console.log(res)
+                            })
                     }}>
                         <Label>Schedule</Label>
                     </svelte:component>

@@ -27,12 +27,22 @@
     });
 
     import AdminUpdateUser from './AdminUpdateUser.svelte';
+    import ConsoleModal from './ConsoleModal.svelte';
     
     function openUpdateUserModal(d) {
         new AdminUpdateUser({
             target: document.body,
             props: {
                 user: d
+            },
+        })
+    }
+
+    function openConsoleModal(data) {
+        new ConsoleModal({
+            target: document.body,
+            props: {
+                data: data
             },
         })
     }
@@ -63,6 +73,7 @@
                             'Content-Type': 'application/json'
                         }}) .then(res => res.json())
                             .then(res => {
+                                openConsoleModal(res)
                                 console.log(res)
                                 if (res['message'] == `User ${user.uID} deleted succesfully`){
                                     location.reload()

@@ -7,7 +7,7 @@ export async function sendMail(mail:MailType) {
     const transport = nodemailer.createTransport({
         service: 'hotmail',
         auth: {
-            user: 'libra.sys@hotmail.com',
+            user: process.env.PROJECT_EMAIL,
             pass: process.env.PWD,
         },
     });

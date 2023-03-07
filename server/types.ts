@@ -5,7 +5,7 @@
 // }
 
 export type UserType = {
-    uID: number,
+    uID: string,
     email: string,
     fName: string,
     uName: string,
