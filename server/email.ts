@@ -12,5 +12,11 @@ export async function sendMail(mail:MailType) {
         },
     });
     
-    transport.sendMail(mail)
+    transport.sendMail(mail).then(res => {
+        console.log(res)
+        console.log(`sent mail to ${mail.to}`)
+    })
+    .catch((e) => {
+        console.log(`Couldn't send mail to ${mail.to}: ${e}`)
+    })
 }

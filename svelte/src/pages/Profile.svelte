@@ -5,23 +5,25 @@
     
 </script>
 
-{#if data.isAdmin}
-Admin Panel:
-    <button on:click={() => location.href = '/admin/users'}>Manage User</button>
-    <button on:click={() => location.href = '/admin/books'}>Manage Books</button>
-{/if}
+<div class="hero">
+    {#if data.isAdmin}
+    Admin Panel:
+        <button on:click={() => location.href = '/admin/users'}>Manage User</button>
+        <button on:click={() => location.href = '/admin/books'}>Manage Books</button>
+    {/if}
 
-<h1>{#if data.isAdmin}Welcome{:else}Hello{/if}, {data.fName}!</h1><br>
+    <h1>{#if data.isAdmin}Welcome{:else}Hello{/if}, {data.fName}!</h1><br>
 
-<div class="profile-columns">
-    <UserBookList data={JSON.parse(data.booksBorrowed)} />
-    <div>
-        User ID: {data.uID}<br>
-        Email: {data.email}<br>
-        Name: <input bind:value={data.fName}><br>
-        Username: <input bind:value={data.uName}><br>
-        Admin? {data.isAdmin}<br>
-        Penalized? {data.isPenalized}<br>
+    <div class="profile-columns">
+        <UserBookList data={JSON.parse(data.booksBorrowed)} />
+        <div>
+            <b>User ID:</b> {data.uID}<br>
+            <b>Email:</b> {data.email}<br><br>
+            <b>Name:</b> {data.fName}<br>
+            <b>Username:</b> {data.uName}<br><br>
+            <b>Admin?</b> {#if data.isAdmin}True{:else}False{/if}<br>
+            <b>Penalized?</b> {#if data.isPenalized}True{:else}False{/if}
+        </div>
     </div>
 </div>
 
@@ -29,6 +31,7 @@ Admin Panel:
 
 <style>
     .profile-columns {
+        text-align: left;
         display: flex;
         align-items: center;
         gap: 5%;

@@ -56,13 +56,14 @@ async function checkOverdueBooks() {
                     to: user.email,
                     subject: `One week has passed`,
                     text: `Hi ${user.fName}, this is a reminder that a week has passed since you issued the book ${book.bID}`
-                })  .then(res => {
-                        console.log(res)
-                        console.log(`sent mail to ${user.email}`)
-                    })
-                    .catch((e) => {
-                        console.log(`Couldn't send mail to ${user.email}: ${e}`)
-                    })
+                }) 
+                    // .then(res => {
+                    //     console.log(res)
+                    //     console.log(`sent mail to ${user.email}`)
+                    // })
+                    // .catch((e) => {
+                    //     console.log(`Couldn't send mail to ${user.email}: ${e}`)
+                    // })
                 console.log(`Sent an email reminder to ${user.uName}`)
             }
         });

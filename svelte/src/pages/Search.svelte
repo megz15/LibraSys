@@ -14,7 +14,7 @@
 
     <div class="search-results">
         <div>
-            {#each 
+            <!-- {#each 
                 [
                     ["Search...", searchedBook  ],
                     ["Genre    ", searchedGenre ],
@@ -25,8 +25,8 @@
                     placeholder="{e[0]}"
                     bind:value={e[1]}
                 />&nbsp;
-            {/each}
-            <!-- <input
+            {/each} -->
+            <input
                 placeholder="Search..."
                 bind:value={searchedBook}
             />
@@ -37,7 +37,7 @@
             <input
                 placeholder="Author"
                 bind:value={searchedAuthor}
-            /> -->
+            />
 
             <button on:click={
                 () => location.href =
