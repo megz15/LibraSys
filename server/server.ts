@@ -751,6 +751,10 @@ app.get('/api/initBooks', (req, res) => {
 app.use(express.static(path.join(__dirname, '..', 'svelte', 'public')))
 app.use('/static', express.static(path.join(__dirname, '..', 'svelte', 'static')))
 
+// app.use((req:Request, res:Response, next:NextFunction) => {
+//     res.status(404).send("That page doesn't exist.")
+// })
+
 app.listen(port, () => {
     console.log(`⚡[server]: running on http://localhost:${port}/`)
 })

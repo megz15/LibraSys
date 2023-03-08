@@ -2,21 +2,21 @@
 
 • Where reading meets technology •
 
-This is an online system that would be connected to a physical library in order to manage the 
+This is an online library management system that would be connected to a physical library in order to manage it's books and users, and allow users to browse and borrow books.
 
 ## Previews
 
 ### Home page
 
-![Home page](https://i.imgur.com/ai57Sld.png)
+![Home page](preview/home.png)
 
-![User facing gif](https://i.imgur.com/dDaBIg0.gif)
+![User facing gif](preview/user.gif)
 
 `Note: The dialog at the end is supposed to say days not ms :p`
 
 ### Admin facing
 
-![Admin facing gif](https://i.imgur.com/ixIYjVU.gif)
+![Admin facing gif](preview/admin.gif)
 
 
 ## CRUx Dev Induction Round 3: Web Development
