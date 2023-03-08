@@ -18,6 +18,8 @@ This is an online library management system that would be connected to a physica
 
 ![Admin facing gif](preview/admin.gif)
 
+`Note: I set up the project to allow external users for testing, I changed the user type to internal later so that only users from the BITS organization can log in`
+
 
 ## CRUx Dev Induction Round 3: Web Development
 
