@@ -82,7 +82,7 @@ cron.schedule('*/30 * * * * *', ()=>{console.log('⚡[server]: still alive')}) /
 // with columns for storing user ID, email, full name, username
 // a stringified array of objects denoting borrowed books
 // and flags for if it is an admin account
-// and if the user has some book for more than the alotted time
+// and if the user has some book for more than the allotted time
 db.exec(`create table if not exists users (
     uID text primary key unique,
     email text unique,

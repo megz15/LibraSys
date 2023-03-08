@@ -11,7 +11,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@lottiefiles/lottie-interactivity": "^1.6.2",
     "@types/express": "^4.17.17",
     "@types/node": "^18.14.2",
     "@types/node-cron": "^3.0.7",
@@ -26,7 +25,6 @@
     "passport": "^0.6.0",
     "passport-google-oauth20": "^2.0.0",
     "redis": "^4.6.5",
-    "smtp-server": "^3.11.0",
     "svelte": "^3.55.1"
   },
   "devDependencies": {
@@ -37,7 +35,6 @@
     "@types/nodemailer": "^6.4.7",
     "@types/passport": "^1.0.12",
     "@types/passport-google-oauth20": "^2.0.11",
-    "@types/smtp-server": "^3.5.7",
     "nodemon": "^2.0.20",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.5"

@@ -30,6 +30,7 @@ You will build a website with a backend in Express.js, and TypeScript and a fron
 Some of the technologies used in the project are:
 
 * Svelte - Front-end framework
+* Svelte Material UI - UI Library
 * Node.js - Back-end runtime environment
 * Express.js - Web framework
 * SQLite3 - Database
@@ -103,7 +104,7 @@ Open [localhost:3000](http://localhost:3000/) to access the website.
 
 ## Initialize some books
 
-Go to [localhost:3000/api/init](http://localhost:3000/api/initBooks) to add some dummy books.
+Go to [localhost:3000/api/initBooks](http://localhost:3000/api/initBooks) to add some dummy books.
 
 # Official instructions
 
